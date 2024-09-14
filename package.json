@@ -23,7 +23,6 @@
     "openai": "^4.58.0",
     "react": "^18",
     "react-dom": "^18",
-    "react-instagram-embed": "^3.0.0",
     "react-tweet": "^3.2.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
