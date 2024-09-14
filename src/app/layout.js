@@ -34,6 +34,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs"; // Keep only ClerkProvider here
+import ClientAuthWrapper from "@/components/ClientAuthWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
