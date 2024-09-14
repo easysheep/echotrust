@@ -31,11 +31,9 @@
 // }
 
 
-"use client"
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { usePathname } from "next/navigation";  // Use this to get the current route
+import { ClerkProvider } from "@clerk/nextjs"; // Keep only ClerkProvider here
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,35 +43,14 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
-
-  // Add a condition to skip Clerk on the '/walloftrust' route
-  const isWallOfTrust = pathname === "/walloftrust";
-
   return (
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          {/* Skip Clerk authentication for '/walloftrust' */}
-          {isWallOfTrust ? (
-            children  // Directly render children for public access
-          ) : (
-            <>
-              {/* SignedIn: Content shown when user is authenticated */}
-              <SignedIn>
-                <UserButton afterSignOutUrl="/" />
-                {children}
-              </SignedIn>
-
-              {/* SignedOut: Content shown when user is not authenticated */}
-              <SignedOut>
-                <SignInButton />
-              </SignedOut>
-            </>
-          )}
+          {/* Render children inside the ClientAuthWrapper */}
+          <ClientAuthWrapper>{children}</ClientAuthWrapper>
         </body>
       </html>
     </ClerkProvider>
   );
 }
-
