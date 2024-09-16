@@ -1,12 +1,9 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { QRCodeCanvas } from "qrcode.react"; // Import QRCode component
 
 const ReviewPage = ({ params }) => {
   const echo_name = params.echo_name;
@@ -17,6 +14,8 @@ const ReviewPage = ({ params }) => {
     stars: "",
     note: "",
   });
+
+  
   const [aiResponse, setAiResponse] = useState(""); // Store AI response
   const { isSignedIn, user } = useUser();
   const { signIn } = useClerk();
@@ -27,14 +26,14 @@ const ReviewPage = ({ params }) => {
   // Hard-coded prompt
   const hardCodedPrompt = `generate a funnier and unique thank you note than before in 2-3 lines about thanking the person for reviewing with ${formData.stars} stars out of 5 to make it look funnily dramatic but never overdo it, don't focus on using many other language words just remain comical with the responses about rating with 1 being worst and 5 being best out of 5 obviously`;
 
+  const reviewLink = `/reviewlandingpage/${echo_name}`; // Create the link to share
+
   useEffect(() => {
     if (echo_name) {
       fetch(`/api/review/${echo_name}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error(
-              `Network response was not ok: ${response.statusText}`
-            );
+            throw new Error(`Network response was not ok: ${response.statusText}`);
           }
           return response.json();
         })
@@ -58,33 +57,6 @@ const ReviewPage = ({ params }) => {
     });
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!isSignedIn) {
-  //     signIn(); // Prompt user to sign in
-  //     return;
-  //   }
-  //   try {
-  //     const response = await fetch(`/api/review/${echo_name}`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log("Review created successfully:", result);
-  //       await runAI(hardCodedPrompt);
-  //     } else {
-  //       console.error("Failed to create review");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during form submission:", error);
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -94,7 +66,6 @@ const ReviewPage = ({ params }) => {
     }
     console.log("user info", user);
 
-    // Use fallback values for user data
     const payload = {
       ...formData,
       username: `${user?.firstName} ${user?.lastName}`.trim() || "Anonymous",
@@ -240,6 +211,21 @@ const ReviewPage = ({ params }) => {
 
             <Button type="submit">Submit</Button>
           </form>
+
+          {/* Shareable link and QR code */}
+          <div className="mt-4">
+            <h2>Share this review page:</h2>
+            <p>
+              <a href={reviewLink} target="_blank" rel="noopener noreferrer">
+                {reviewLink}
+              </a>
+            </p>
+
+            <div className="mt-2">
+              <h3>Generate QR Code:</h3>
+              <QRCodeCanvas value={reviewLink} size={128} />
+            </div>
+          </div>
         </div>
       ) : (
         <div>
