@@ -1,6 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
+import { motion } from "framer-motion";
+import SocialMediaIntegration from "@/app/embeds/Embed";
+import Analytics from "../../../components/Analytics";
+import LineChart from "@/components/LineChart";
+import WallOfTrust from "@/components/WallOfTrust";
 const Dashboard = ({ params }) => {
   const echo_id = params.echo_id; // This is now the MongoDB _id
   const [reviews, setReviews] = useState([]);
@@ -8,6 +12,24 @@ const Dashboard = ({ params }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedStar, setSelectedStar] = useState(null); // State to store the selected star filter
+  const [selectedColumn, setSelectedColumn] = useState("review");
+  const [wallData, setWallData] = useState(null);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2, // Delay between children animations
+      },
+    },
+  };
+
+  // Animation variants for each review card
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 }, // Start slightly down the screen
+    show: { opacity: 1, y: 0 }, // Animate to normal position
+  };
 
   const getReviews = async () => {
     try {
@@ -47,6 +69,7 @@ const Dashboard = ({ params }) => {
 
   useEffect(() => {
     getReviews();
+    // getWallOfTrustData();
   }, [echo_id]);
 
   if (loading) {
@@ -57,112 +80,281 @@ const Dashboard = ({ params }) => {
     return <div>Error: {error}</div>;
   }
 
-  // return (
-  //   <div>
-  //     <h1>Reviews</h1>
+  const totalReviews = filteredReviews.length;
+  const averageRating =
+    totalReviews > 0
+      ? (
+          filteredReviews.reduce((acc, review) => acc + review.stars, 0) /
+          totalReviews
+        ).toFixed(1) // Rounds to one decimal place
+      : 0; // Default to 0 if there are no reviews
 
-  //     {/* Star filter buttons */}
-  //     <div className="flex space-x-2 my-4">
-  //       <button
-  //         className={`px-4 py-2 ${selectedStar === null ? "bg-blue-500" : "bg-gray-300"} text-white`}
-  //         onClick={() => filterReviewsByStars(null)}
-  //       >
-  //         All Stars
-  //       </button>
-  //       {[1, 2, 3, 4, 5].map((star) => (
-  //         <button
-  //           key={star}
-  //           className={`px-4 py-2 ${selectedStar === star ? "bg-blue-500" : "bg-gray-300"} text-white`}
-  //           onClick={() => filterReviewsByStars(star)}
-  //         >
-  //           {star} Star{star > 1 ? "s" : ""}
-  //         </button>
-  //       ))}
-  //     </div>
+  const averageReviewLength =
+    totalReviews > 0
+      ? Math.round(
+          filteredReviews.reduce(
+            (acc, review) => acc + (review.note ? review.note.length : 0),
+            0
+          ) / totalReviews
+        ) // Rounds to the nearest integer
+      : 0; // Default to 0 if there are no reviews
 
-  //     {/* Reviews list */}
-  //     {filteredReviews.length > 0 ? (
-  //       filteredReviews.map((review) => (
-  //         <div key={review._id} className="bg-[#5D5DFF] my-2 w-96 text-white p-4 rounded-md">
-  //           <p>Stars: {review.stars}</p>
-  //           <p>Note: {review.note}</p>
-  //           <p>{review.username}</p>
-  //           {review.userimageurl ? (
-  //             <img
-  //               src={review.userimageurl}
-  //               alt="User Image"
-  //               className="h-16 w-16 rounded-full bg-black"
-  //               onError={(e) => {
-  //                 e.target.src =
-  //                   "https://via.placeholder.com/64x64/000000/FFFFFF?text=No+Image"; // Black image fallback
-  //               }}
-  //             />
-  //           ) : (
-  //             <div className="h-16 w-16 rounded-full bg-black"></div> // Black div as fallback
-  //           )}
-  //         </div>
-  //       ))
-  //     ) : (
-  //       <p>No reviews found</p>
-  //     )}
-  //   </div>
-  // );
-  return (
-    <div>
-      <h1>Reviews</h1>
-  
-      {/* Star filter buttons */}
-      <div className="flex space-x-2 my-4">
-        <button
-          className={`px-4 py-2 ${selectedStar === null ? "bg-blue-500" : "bg-gray-300"} text-white`}
-          onClick={() => filterReviewsByStars(null)}
-        >
-          All Stars
-        </button>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            className={`px-4 py-2 ${selectedStar === star ? "bg-blue-500" : "bg-gray-300"} text-white`}
-            onClick={() => filterReviewsByStars(star)}
-          >
-            {star} Star{star > 1 ? "s" : ""}
-          </button>
-        ))}
-      </div>
-  
-      {/* Reviews list in grid layout */}
-      {filteredReviews.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {filteredReviews.map((review) => (
-            <div key={review._id} className="bg-[#5D5DFF] text-white p-4 rounded-md">
-              <p>Stars: {review.stars}</p>
-              <p>Note: {review.note}</p>
-              <p>{review.username}</p>
-              {review.userimageurl ? (
-                <img
-                  src={review.userimageurl}
-                  alt="User Image"
-                  className="h-16 w-16 rounded-full bg-black"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/64x64/000000/FFFFFF?text=No+Image"; // Black image fallback
-                  }}
-                />
+  const averageReviewWords =
+    totalReviews > 0
+      ? Math.round(
+          filteredReviews.reduce(
+            (acc, review) =>
+              acc + (review.note ? review.note.split(" ").length : 0),
+            0
+          ) / totalReviews
+        ) // Rounds to the nearest integer
+      : 0; // Default to 0 if there are no reviews
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handlePlusClick = async (reviewId) => {
+    try {
+      console.log("Echo ID:", echo_id); // Log echo_id to ensure it's available
+      console.log("Review ID:", reviewId); // Log reviewId to ensure it's passed correctly
+
+      const response = await fetch(`/api/walloftrust/${echo_id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reviewId }), // Pass reviewId in the body
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Success:", data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const renderContent = () => {
+    switch (selectedColumn) {
+      case "review":
+        return (
+          <div className="flex flex-grow min-h-0">
+            <div className="leftcol w-1/6 bg-[#0A0A0A]">
+              {/* Star Filter Buttons */}
+              <div className="flex flex-col h-full">
+                <div className="flex flex-col flex-grow">
+                  <div
+                    className={`flex items-center px-2 py-3 transition-colors duration-300 ${
+                      selectedStar === null ? "bg-purple-500" : "bg-[#0A0A0A]"
+                    } text-white hover:bg-purple-700 focus:ring focus:ring-purple-300 cursor-pointer`}
+                    onClick={() => filterReviewsByStars(null)}
+                    style={{ borderRadius: "0" }}
+                  >
+                    <span className="text-yellow-400 mr-2">★</span>
+                    All Stars
+                  </div>
+
+                  {[1, 2, 3, 4, 5].map((star, index) => (
+                    <div
+                      key={star}
+                      className={`flex items-center px-2 py-3 transition-colors duration-300 ${
+                        selectedStar === star ? "bg-purple-500" : "bg-[#0A0A0A]"
+                      } text-white hover:bg-purple-700 focus:ring focus:ring-purple-300 cursor-pointer`}
+                      onClick={() => filterReviewsByStars(star)}
+                      style={{
+                        borderRadius: "0",
+                        marginTop: index === 0 ? "0" : "-1px", // Ensure connected bars
+                      }}
+                    >
+                      {star}
+                      <span className="text-yellow-400 ml-2 text-xl">★</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex-grow bg-[#0A0A0A]"></div>
+              </div>
+            </div>
+
+            <div className="rightcol w-5/6 bg-black px-4">
+              {filteredReviews.length > 0 ? (
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {filteredReviews.map((review) => (
+                    <motion.div
+                      key={review._id}
+                      className="bg-slate-900 text-white p-4 rounded-md"
+                      variants={itemVariants}
+                    >
+                      <div className="">
+                        <div className="flex gap-3 justify-between items-center">
+                          {/* Image and Username on the Left */}
+                          <div className="flex items-center gap-3">
+                            {review.userimageurl ? (
+                              <img
+                                src={review.userimageurl}
+                                alt="User Image"
+                                className="h-8 w-8 rounded-full bg-black"
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://via.placeholder.com/64x64/000000/FFFFFF?text=No+Image"; // Fallback image
+                                }}
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-black"></div> // Black fallback div
+                            )}
+                            <span>{review.username}</span>
+                          </div>
+
+                          {/* Plus Sign on the Right */}
+                          <span
+                            className="text-xl text-white cursor-pointer"
+                            onClick={() => handlePlusClick(review._id)}
+                          >
+                            +
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 italic font-poppins font-semibold">
+                        - {review.note}
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
               ) : (
-                <div className="h-16 w-16 rounded-full bg-black"></div> // Black div as fallback
+                <p className="text-white">No reviews found</p>
               )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <p>No reviews found</p>
-      )}
+          </div>
+        );
+      case "embedding":
+        return <SocialMediaIntegration echo_id={echo_id} />;
+      case "analytics":
+        return (
+          <div className="bg-black flex">
+            <div className="leftsd w-2/6 flex flex-col items-center flex-start">
+              <Analytics reviews={filteredReviews} />
+              <div className="flex justify-center space-x-4 items-center">
+                {" "}
+                {/* Add margin on top for spacing */}
+                <div className="bg-black rounded-lg shadow-md text-center">
+                  <p className="text-6xl">{averageRating}</p>
+                  <h3 className="text-sm font-monte ">Average Rating</h3>
+                </div>
+                <div className="bg-black  rounded-lg shadow-md text-center">
+                  <p className="text-6xl">{totalReviews}</p>
+                  <h3 className="text-sm font-monte ">Number of Reviews</h3>
+                </div>
+              </div>
+            </div>
+            <div className="rightsd w-4/6">
+              {" "}
+              <div className="bg-black p-4 rounded-lg shadow-md text-center">
+                <h3 className="text-lg font-bold">Average Review Length</h3>
+                <p className="text-xl">{averageReviewLength} characters</p>
+              </div>
+              <div className="bg-black p-4 rounded-lg shadow-md text-center">
+                <h3 className="text-lg font-bold">Average Words Per Review </h3>
+                <p className="text-xl">{averageReviewWords} words</p>
+              </div>
+              <LineChart reviews={reviews} />
+            </div>
+          </div>
+        );
+      case "walloftrust":
+        return <WallOfTrust echoId={echo_id} />;
+      default:
+        return null;
+    }
+  };
+
+
+  
+  return (
+    <div className="bg-black px-3 py-6 min-h-screen">
+      {/* Dashboard Title */}
+      <div className="text-white font-protest text-6xl font-extrabold flex justify-center items-center">
+        Dashboard
+      </div>
+
+      {/* Grid for Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 my-6">
+        <button
+          className={`text-white font-extrabold text-lg font-poppins transition-colors duration-300 py-2 ${
+            selectedColumn === "review" ? "bg-purple-500" : "bg-[#0A0A0A]"
+          }`}
+          onClick={() => setSelectedColumn("review")}
+        >
+          Review
+        </button>
+        <button
+          className={`text-white font-extrabold text-lg font-poppins transition-colors duration-300 py-2 ${
+            selectedColumn === "embedding" ? "bg-purple-500" : "bg-[#0A0A0A]"
+          }`}
+          onClick={() => setSelectedColumn("embedding")}
+        >
+          Embedding
+        </button>
+        <button
+          className={`text-white font-extrabold text-lg font-poppins transition-colors duration-300 py-2 ${
+            selectedColumn === "analytics" ? "bg-purple-500" : "bg-[#0A0A0A]"
+          }`}
+          onClick={() => setSelectedColumn("analytics")}
+        >
+          Analytics
+        </button>
+        <button
+          className={`text-white font-extrabold text-lg font-poppins transition-colors duration-300 py-2 ${
+            selectedColumn === "walloftrust" ? "bg-purple-500" : "bg-[#0A0A0A]"
+          }`}
+          onClick={() => setSelectedColumn("walloftrust")}
+        >
+          Wall of Trust
+        </button>
+      </div>
+
+      {/* Content based on selected column */}
+      <div className="bg-gray-800 text-white rounded-md h-fit-content">
+        {renderContent()}
+      </div>
     </div>
   );
-
-
 };
-
-
 
 export default Dashboard;

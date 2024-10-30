@@ -17,6 +17,8 @@ export async function GET(request, { params }) {
       );
     }
 
+
+    
     // Fetch the Echo document
     const echo = await Echo.findById(echo_id);
 

@@ -1,7 +1,20 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
 const echoCreateSchema = new Schema(
   {
+
+    // name: {
+    //   type: String,
+    //   required: true,
+    // },
+    // age: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // image: {
+    //   type: String, // URL or base64-encoded string
+    //   required: true,
+    // },
     echo_name: {
       type: String,
       required: true,
@@ -26,19 +39,17 @@ const echoCreateSchema = new Schema(
       type: String, // Can be a file path or URL
     },
     echo_logo: {
-      type: String, // Can be a file path or URL
-    },
-    add_questions: {
-      type: String,
+      type: String, // URL or base64-encoded string
+      required: true,
     },
     user: {
       type: String, // Clerk user ID stored as a string
       required: true,
     },
-    reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }]
+    reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
   },
   { timestamps: true }
 );
 
-const Echo = mongoose.models.Echo || mongoose.model('Echo', echoCreateSchema);
+const Echo = mongoose.models.Echo || mongoose.model("Echo", echoCreateSchema);
 export default Echo;

@@ -1,61 +1,55 @@
-import connectToMongo from "../../../../../dbs/mongodb"; // Your MongoDB connection utility
-import EchoEmbeds from "@/../models/echoEmbeds"; // Corrected import path (if necessary)
+import connectToMongo from "../../../../../dbs/mongodb"; // MongoDB connection utility
+import EchoEmbeds from "@/../models/echoEmbeds"; // Correct path to EchoEmbeds model
 import mongoose from "mongoose";
-import { NextResponse } from "next/server"; // Ensures consistent response format
+import { NextResponse } from "next/server";
 
-export async function POST(req, { params }) {
+export async function GET(req, { params }) {
+  const { echo_id } = params; // Get echo_id from params
+  await connectToMongo();
+
   try {
-    // Ensure DB connection is established
-    await connectToMongo();
-
-    const { echo_id } = params;
-
-    // Validate the echo_id
-    if (!mongoose.Types.ObjectId.isValid(echo_id)) {
-      return NextResponse.json(
-        { message: "Invalid Echo ID" },
-        { status: 400 }
+    const embeds = await EchoEmbeds.findOne({ echoId: echo_id });
+    if (!embeds) {
+      return new Response(
+        JSON.stringify({ success: false, message: "No embeds found." }),
+        { status: 404 }
       );
     }
-
-    const { tweetIds, youtubeUrls, instagramUrls } = await req.json(); // Fetch data from the request body
-
-    // Find the echo record or create a new one if it doesn't exist
-    let echoEmbed = await EchoEmbeds.findOne({ echoId: echo_id });
-
-    if (!echoEmbed) {
-      echoEmbed = new EchoEmbeds({
-        echoId: echo_id,
-        tweetIds: [],
-        youtubeUrls: [],
-        instagramUrls: []
-      });
-    }
-
-    // Add new embed data (spread operator ensures appending)
-    if (tweetIds && tweetIds.length > 0) {
-      echoEmbed.tweetIds = [...echoEmbed.tweetIds, ...tweetIds];
-    }
-    if (youtubeUrls && youtubeUrls.length > 0) {
-      echoEmbed.youtubeUrls = [...echoEmbed.youtubeUrls, ...youtubeUrls];
-    }
-    if (instagramUrls && instagramUrls.length > 0) {
-      echoEmbed.instagramUrls = [...echoEmbed.instagramUrls, ...instagramUrls];
-    }
-
-    // Save the updated document in the database
-    await echoEmbed.save();
-
-    return NextResponse.json({ success: true, data: echoEmbed });
+    return new Response(JSON.stringify({ success: true, data: embeds }), {
+      status: 200,
+    });
   } catch (error) {
-    console.error("Error saving embed data:", error);
-    return NextResponse.json(
-      { success: false, message: "Error saving embed data", error },
+    return new Response(
+      JSON.stringify({ success: false, message: error.message }),
       { status: 500 }
     );
   }
 }
 
-export function GET() {
-  return NextResponse.json({ message: "Method not allowed" }, { status: 405 });
+export async function POST(req, { params }) {
+  const { echo_id } = params; // Get echo_id from params
+  await connectToMongo();
+
+  try {
+    const { tweetIds, youtubeUrls, instagramUrls } = await req.json(); // Parse JSON from the request
+    const embeds = await EchoEmbeds.findOneAndUpdate(
+      { echoId: echo_id },
+      {
+        $addToSet: {
+          tweetIds: { $each: tweetIds || [] },
+          youtubeUrls: { $each: youtubeUrls || [] },
+          instagramUrls: { $each: instagramUrls || [] },
+        },
+      },
+      { new: true, upsert: true }
+    );
+    return new Response(JSON.stringify({ success: true, data: embeds }), {
+      status: 200,
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, message: error.message }),
+      { status: 500 }
+    );
+  }
 }
