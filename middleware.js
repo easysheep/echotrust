@@ -2,7 +2,7 @@ import { clerkMiddleware } from '@clerk/nextjs/server';
 
 export default clerkMiddleware({
   // Make the home route ("/") public
-  publicRoutes: ['/','/dashboard', '/dashboard/:echoId'] // Add more public routes if needed
+  publicRoutes: ['/','/dashboard', '/dashboard/*'] // Add more public routes if needed
 });
 
 export const config = {
