@@ -215,48 +215,9 @@ const WallOfTrust = ({ echoId, isEmbed = false }) => {
         <div className="col-span-2 row-span-2 flex">{renderLargeBox(0)}</div>
         <div className="col-span-2 row-span-1 flex">{renderSmallBox(13)}</div>
       </div>
-      <div className="text-white mt-4 bg-black">
-        <button
-          onClick={() => setShowEmbedLink(!showEmbedLink)}
-          className="bg-purple-700 hover:bg-purple-900 text-white py-2 px-4 rounded"
-        >
-          Embed Wall
-        </button>
-        {showEmbedLink && (
-          <div className="mt-3 bg-black p-3 rounded text-white">
-            <p>Embed this Wall of Trust:</p>
-            <code>{`<iframe src="${embedLink}" width="600" height="800"></iframe>`}</code>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
 
 export default WallOfTrust;
 
-// <div className="grid h-[2000px] grid-cols-6 bg-black px-3 py-3 gap-2 grid-rows-auto">
-//   <div className="col-span-2 row-span-2 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-2 bg-red-500 flex items-center justify-center"></div>
-//   <div className="col-span-2 row-span-1 bg-blue-500 flex items-center justify-center"></div>
-
-// </div>
