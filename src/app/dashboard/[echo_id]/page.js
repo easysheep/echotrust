@@ -5,6 +5,8 @@ import SocialMediaIntegration from "@/app/embeds/Embed";
 import Analytics from "../../../components/Analytics";
 import LineChart from "@/components/LineChart";
 import WallOfTrust from "@/components/WallOfTrust";
+import LoadingAnimation from "@/components/LoadingAnimation";
+import toast from "react-hot-toast";
 const Dashboard = ({ params }) => {
   const echo_id = params.echo_id; // This is now the MongoDB _id
   const [reviews, setReviews] = useState([]);
@@ -73,7 +75,7 @@ const Dashboard = ({ params }) => {
   }, [echo_id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingAnimation></LoadingAnimation>;
   }
 
   if (error) {
@@ -110,60 +112,47 @@ const Dashboard = ({ params }) => {
         ) // Rounds to the nearest integer
       : 0; // Default to 0 if there are no reviews
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const handlePlusClick = async (reviewId) => {
     try {
       console.log("Echo ID:", echo_id); // Log echo_id to ensure it's available
       console.log("Review ID:", reviewId); // Log reviewId to ensure it's passed correctly
 
-      const response = await fetch(`/api/walloftrust/${echo_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reviewId }), // Pass reviewId in the body
-      });
+      // Using toast.promise to handle the asynchronous operation
+      toast.promise(
+        (async () => {
+          const response = await fetch(`/api/walloftrust/${echo_id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reviewId }), // Pass reviewId in the body
+          });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
 
-      const data = await response.json();
-      console.log("Success:", data);
+          const data = await response.json();
+          console.log("Success:", data);
+          return data; // Return data for success message
+        })(),
+        {
+          loading: "Embedding review...",
+          success: <b>Review Embedded Successfully!</b>,
+          error: (error) => <b>Failed to embed review: {error.message}</b>,
+        }
+      );
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  function truncateText(text, wordLimit) {
+    const words = text.split(" ");
+    return words.length > wordLimit
+      ? words.slice(0, wordLimit).join(" ") + "..."
+      : text;
+  }
 
   const renderContent = () => {
     switch (selectedColumn) {
@@ -221,7 +210,7 @@ const Dashboard = ({ params }) => {
                       className="bg-slate-900 text-white p-4 rounded-md"
                       variants={itemVariants}
                     >
-                      <div className="">
+                      <div>
                         <div className="flex gap-3 justify-between items-center">
                           {/* Image and Username on the Left */}
                           <div className="flex items-center gap-3">
@@ -252,7 +241,7 @@ const Dashboard = ({ params }) => {
                       </div>
 
                       <div className="mt-3 italic font-poppins font-semibold">
-                        - {review.note}
+                        - {truncateText(review.note, 30)}
                       </div>
                     </motion.div>
                   ))}
@@ -267,33 +256,66 @@ const Dashboard = ({ params }) => {
         return <SocialMediaIntegration echo_id={echo_id} />;
       case "analytics":
         return (
-          <div className="bg-black flex">
-            <div className="leftsd w-2/6 flex flex-col items-center flex-start">
-              <Analytics reviews={filteredReviews} />
-              <div className="flex justify-center space-x-4 items-center">
-                {" "}
-                {/* Add margin on top for spacing */}
-                <div className="bg-black rounded-lg shadow-md text-center">
-                  <p className="text-6xl">{averageRating}</p>
-                  <h3 className="text-sm font-monte ">Average Rating</h3>
-                </div>
-                <div className="bg-black  rounded-lg shadow-md text-center">
-                  <p className="text-6xl">{totalReviews}</p>
-                  <h3 className="text-sm font-monte ">Number of Reviews</h3>
-                </div>
+          // <div className="bg-black flex">
+          //   <div className="leftsd w-2/6 flex flex-col items-center flex-start">
+          //     <Analytics reviews={filteredReviews} />
+          //     <div className="flex justify-center space-x-4 items-center">
+          //       {" "}
+          //       {/* Add margin on top for spacing */}
+          //       <div className="bg-black rounded-lg shadow-md text-center">
+          //         <p className="text-6xl">{averageRating}</p>
+          //         <h3 className="text-sm font-monte ">Average Rating</h3>
+          //       </div>
+          //       <div className="bg-black  rounded-lg shadow-md text-center">
+          //         <p className="text-6xl">{totalReviews}</p>
+          //         <h3 className="text-sm font-monte ">Number of Reviews</h3>
+          //       </div>
+          //     </div>
+          //   </div>
+          //   <div className="rightsd w-4/6 flex flex-col ">
+          //     {" "}
+          //     <LineChart reviews={reviews} />
+          //     <div className="bg-black p-4 rounded-lg shadow-md text-center">
+          //       <p className="text-xl">{averageReviewLength} characters</p>
+          //       <h3 className="text-lg font-bold">Average Review Length</h3>
+          //     </div>
+          //     <div className="bg-black p-4 rounded-lg shadow-md text-center">
+          //       <p className="text-xl">{averageReviewWords} words</p>
+          //       <h3 className="text-lg font-bold">Average Words Per Review </h3>
+          //     </div>
+          //   </div>
+          // </div>
+
+          <div className="bg-black flex flex-col px-6 py-4">
+            {/* Top container for Analytics and LineChart */}
+            <div className="flex w-full">
+              <div className="w-2/6 flex flex-col items-center">
+                <Analytics reviews={filteredReviews} />
+              </div>
+              <div className="w-4/6">
+                <LineChart reviews={reviews} />
               </div>
             </div>
-            <div className="rightsd w-4/6">
-              {" "}
-              <div className="bg-black p-4 rounded-lg shadow-md text-center">
-                <h3 className="text-lg font-bold">Average Review Length</h3>
-                <p className="text-xl">{averageReviewLength} characters</p>
+
+            {/* Bottom container for the four statistics */}
+            <div className="flex flex-wrap justify-between space-x-4">
+              <div className="bg-black rounded-lg shadow-md text-center p-4">
+                <p className="text-6xl">{averageRating}</p>
+                <h3 className="text-sm font-monte">Average Rating</h3>
               </div>
-              <div className="bg-black p-4 rounded-lg shadow-md text-center">
-                <h3 className="text-lg font-bold">Average Words Per Review </h3>
-                <p className="text-xl">{averageReviewWords} words</p>
+              <div className="bg-black rounded-lg shadow-md text-center p-4">
+                <p className="text-6xl">{totalReviews}</p>
+                <h3 className="text-sm font-monte">Number of Reviews</h3>
               </div>
-              <LineChart reviews={reviews} />
+              <div className="bg-black rounded-lg shadow-md text-center p-4">
+                <p className="text-6xl">{averageReviewLength}</p>
+                <h3 className="text-sm font-monte">Average Review Length (characters)</h3>
+              </div>
+              <div className="bg-black rounded-lg shadow-md text-center p-4">
+                
+                <p className="text-6xl">{averageReviewWords}</p>
+                <h3 className="text-sm font-monte">Average Words Per Review</h3>
+              </div>
             </div>
           </div>
         );
@@ -304,13 +326,6 @@ const Dashboard = ({ params }) => {
     }
   };
 
-
-
-
-  
-
-
-  
   return (
     <div className="bg-black px-3 py-6 min-h-screen">
       {/* Dashboard Title */}

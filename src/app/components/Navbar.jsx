@@ -15,7 +15,13 @@ const Navbar = () => {
       <div className="flex gap-10 font-roboto font-medium ">
         {/* Left Side: Pricing and Features */}
         <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
-          Pricing
+          <button
+            onClick={() =>
+              pricingRef.current.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            Pricing
+          </button>
         </p>
         <p className="text-white text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
           Features
@@ -26,8 +32,14 @@ const Navbar = () => {
       </div>
 
       {/* Center Title */}
-      <div className="flex text-center text-5xl font-protest tracking-tight text-white" style={{ textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)' }}>
-        E c h o   T r u s t
+      <div
+        className="flex text-center text-5xl font-protest tracking-tight text-white"
+        style={{
+          textShadow:
+            "0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)",
+        }}
+      >
+        E c h o T r u s t
       </div>
 
       {/* Right Side: Sign In / Sign Up */}
@@ -35,8 +47,7 @@ const Navbar = () => {
         <SignedIn>
           <div className="flex items-center gap-2">
             <UserButton afterSignOutUrl="/" />
-            <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default">
-            </p>
+            <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default"></p>
           </div>
         </SignedIn>
 

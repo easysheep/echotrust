@@ -1,4 +1,4 @@
-// "use client"; // This ensures it's a client component
+// "use client";
 
 // import { usePathname } from "next/navigation";
 // import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
@@ -7,20 +7,19 @@
 //   const pathname = usePathname();
 
 //   // Define paths where the UserButton should be displayed
-//   const userButtonPaths = ["/dashboard", "/profile"]; // Add other paths as needed
+//   const userButtonPaths = ["/walloftrust", "/profile"];
 
-//   // Determine if we are on the 'walloftrust' page or any other protected route
-//   const isWallOfTrust = pathname === "/";
+//   // Determine if the current path is public and does not need authentication
+//   const isWallOfTrust = pathname === "/" || pathname.startsWith("/walloftrust");
 
 //   return (
 //     <>
 //       {isWallOfTrust ? (
-//         children // Directly render children if the route is '/walloftrust'
+//         children // Directly render children if the route is public
 //       ) : (
 //         <>
 //           {/* SignedIn: Content shown when user is authenticated */}
 //           <SignedIn>
-//             {/* Only render UserButton if the current path is in the userButtonPaths array */}
 //             {userButtonPaths.includes(pathname) ? (
 //               <UserButton afterSignOutUrl="/" />
 //             ) : null}
@@ -36,11 +35,6 @@
 //     </>
 //   );
 // }
-
-
-
-
-
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -71,7 +65,19 @@ export default function ClientAuthWrapper({ children }) {
 
           {/* SignedOut: Content shown when user is not authenticated */}
           <SignedOut>
-            <SignInButton />
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-center p-4">
+              <h1 className="text-2xl font-semibold text-white">
+                Access Restricted
+              </h1>
+              <p className="text-gray-500 mb-4">
+                You need to sign in to access this page.
+              </p>
+              <SignInButton>
+                <button className="px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                  Sign In
+                </button>
+              </SignInButton>
+            </div>
           </SignedOut>
         </>
       )}

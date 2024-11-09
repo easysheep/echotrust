@@ -4,7 +4,8 @@ import { Tweet } from "react-tweet";
 import { useParams } from "next/navigation";
 import { FaYoutube, FaInstagram } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
-import { CiSquarePlus } from "react-icons/ci";
+import { CiSquarePlus, CiTrash } from "react-icons/ci";
+import toast, { Toaster } from "react-hot-toast";
 // Main Component
 const SocialMediaIntegration = ({ echo_id }) => {
   // const { echo_id } = useParams();
@@ -39,6 +40,39 @@ const SocialMediaIntegration = ({ echo_id }) => {
 
     fetchEmbedData();
   }, [echo_id]);
+
+  const handleDeleteEmbed = async (embedId, embedType) => {
+    toast.promise(
+      (async () => {
+        const response = await fetch(`/api/embeds/${echo_id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ embedId, embedType }), // Send the embed ID and type in the body
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to delete embed");
+        }
+
+        // Update state to remove deleted embed
+        setEmbedData((prevData) => ({
+          ...prevData,
+          [embedType]: prevData[embedType].filter((id) => id !== embedId),
+        }));
+
+        return result; // Return result for success message
+      })(),
+      {
+        loading: "Deleting embed...",
+        success: <b>Embedding Deleted!</b>,
+        error: (error) => <b>Failed to delete embed: {error.message}</b>,
+      }
+    );
+  };
 
   const handleTweetSubmit = async (e) => {
     e.preventDefault();
@@ -123,29 +157,128 @@ const SocialMediaIntegration = ({ echo_id }) => {
     return match ? match[1] : null;
   };
 
+  // const handleYoutubeEmbeding = async (e, videoUrl) => {
+  //   e.preventDefault();
+  //   const videoId = extractVideoID(videoUrl); // Ensure this function is defined elsewhere
+  //   if (videoId) {
+  //     try {
+  //       const response = await fetch(`/api/embeding/${echo_id}`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ youtubeUrls: [videoUrl] }),
+  //       });
+
+  //       const responseData = await response.json();
+  //       console.log("Response Status:", response.status); // Check status code
+  //       console.log("Response Data:", responseData); // Log the full response data
+
+  //       if (response.ok) {
+  //         toast.success("Youtube embedded successfully!");
+  //         console.log("toast shiuld be vsible");
+  //       } else {
+  //         console.error(`Error: ${responseData.message}`);
+  //         toast.error(`Error: ${responseData.message}`);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error saving YouTube URLs:", error);
+  //     }
+  //   } else {
+  //     alert("Invalid YouTube URL. Please enter a valid link.");
+  //   }
+  // };
+
+  // const handleInstagramEmbeding = async (e, postUrl) => {
+  //   e.preventDefault();
+  //   if (postUrl) {
+  //     try {
+  //       const response = await fetch(`/api/embeding/${echo_id}`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ instagramUrls: [postUrl] }),
+  //       });
+
+  //       const responseData = await response.json();
+  //       console.log("Response Status:", response.status); // Check status code
+  //       console.log("Response Data:", responseData); // Log the full response data
+
+  //       if (response.ok) {
+  //         toast.success("Instagram embedded successfully!");
+  //       } else {
+  //         console.error(`Error: ${responseData.message}`);
+  //         toast.error(`Error: ${responseData.message}`);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error saving Instagram URLs:", error);
+  //     }
+  //   } else {
+  //     alert("Invalid Instagram URL. Please enter a valid link.");
+  //   }
+  // };
+
+  // const handleTweetEmbeding = async (e, tweetId) => {
+  //   e.preventDefault();
+  //   if (tweetId) {
+  //     try {
+  //       const response = await fetch(`/api/embeding/${echo_id}`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ tweetIds: [tweetId] }),
+  //       });
+
+  //       const responseData = await response.json();
+  //       console.log("Response Status:", response.status); // Check status code
+  //       console.log("Response Data:", responseData); // Log the full response data
+
+  //       if (response.ok) {
+  //         toast.success("Tweet embedded successfully!");
+  //       } else {
+  //         console.error(`Error: ${responseData.message}`);
+  //         toast.error(`Error: ${responseData.message}`);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error saving Tweet IDs:", error);
+  //     }
+  //   }
+  // };
+
   const handleYoutubeEmbeding = async (e, videoUrl) => {
     e.preventDefault();
     const videoId = extractVideoID(videoUrl); // Ensure this function is defined elsewhere
     if (videoId) {
-      try {
-        const response = await fetch(`/api/embeding/${echo_id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ youtubeUrls: [videoUrl] }),
-        });
+      toast.promise(
+        (async () => {
+          const response = await fetch(`/api/embeding/${echo_id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ youtubeUrls: [videoUrl] }),
+          });
 
-        const responseData = await response.json();
-        console.log("Response Status:", response.status); // Check status code
-        console.log("Response Data:", responseData); // Log the full response data
+          const responseData = await response.json();
+          console.log("Response Status:", response.status); // Check status code
+          console.log("Response Data:", responseData); // Log the full response data
 
-        if (!response.ok) {
-          console.error(`Error: ${responseData.message}`);
+          if (!response.ok) {
+            throw new Error(
+              responseData.message || "Failed to embed YouTube video"
+            );
+          }
+
+          return responseData; // Return responseData for success message
+        })(),
+        {
+          loading: "Embedding YouTube video...",
+          success: <b>YouTube embedded successfully!</b>,
+          error: (error) => <b>Error embedding YouTube: {error.message}</b>,
         }
-      } catch (error) {
-        console.error("Error saving YouTube URLs:", error);
-      }
+      );
     } else {
       alert("Invalid YouTube URL. Please enter a valid link.");
     }
@@ -154,25 +287,34 @@ const SocialMediaIntegration = ({ echo_id }) => {
   const handleInstagramEmbeding = async (e, postUrl) => {
     e.preventDefault();
     if (postUrl) {
-      try {
-        const response = await fetch(`/api/embeding/${echo_id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ instagramUrls: [postUrl] }),
-        });
+      toast.promise(
+        (async () => {
+          const response = await fetch(`/api/embeding/${echo_id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ instagramUrls: [postUrl] }),
+          });
 
-        const responseData = await response.json();
-        console.log("Response Status:", response.status); // Check status code
-        console.log("Response Data:", responseData); // Log the full response data
+          const responseData = await response.json();
+          console.log("Response Status:", response.status); // Check status code
+          console.log("Response Data:", responseData); // Log the full response data
 
-        if (!response.ok) {
-          console.error(`Error: ${responseData.message}`);
+          if (!response.ok) {
+            throw new Error(
+              responseData.message || "Failed to embed Instagram post"
+            );
+          }
+
+          return responseData; // Return responseData for success message
+        })(),
+        {
+          loading: "Embedding Instagram post...",
+          success: <b>Instagram embedded successfully!</b>,
+          error: (error) => <b>Error embedding Instagram: {error.message}</b>,
         }
-      } catch (error) {
-        console.error("Error saving Instagram URLs:", error);
-      }
+      );
     } else {
       alert("Invalid Instagram URL. Please enter a valid link.");
     }
@@ -181,25 +323,32 @@ const SocialMediaIntegration = ({ echo_id }) => {
   const handleTweetEmbeding = async (e, tweetId) => {
     e.preventDefault();
     if (tweetId) {
-      try {
-        const response = await fetch(`/api/embeding/${echo_id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ tweetIds: [tweetId] }),
-        });
+      toast.promise(
+        (async () => {
+          const response = await fetch(`/api/embeding/${echo_id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tweetIds: [tweetId] }),
+          });
 
-        const responseData = await response.json();
-        console.log("Response Status:", response.status); // Check status code
-        console.log("Response Data:", responseData); // Log the full response data
+          const responseData = await response.json();
+          console.log("Response Status:", response.status); // Check status code
+          console.log("Response Data:", responseData); // Log the full response data
 
-        if (!response.ok) {
-          console.error(`Error: ${responseData.message}`);
+          if (!response.ok) {
+            throw new Error(responseData.message || "Failed to embed tweet");
+          }
+
+          return responseData; // Return responseData for success message
+        })(),
+        {
+          loading: "Embedding tweet...",
+          success: <b>Tweet embedded successfully!</b>,
+          error: (error) => <b>Error embedding tweet: {error.message}</b>,
         }
-      } catch (error) {
-        console.error("Error saving Tweet IDs:", error);
-      }
+      );
     }
   };
 
@@ -257,124 +406,6 @@ const SocialMediaIntegration = ({ echo_id }) => {
       </div>
 
       {/* Right Content */}
-      {/* <div className="rightcol w-5/6 bg-black px-4">
-        {activeTab === "twitter" && (
-          <div>
-            <form
-              onSubmit={handleTweetSubmit}
-              className="flex items-center justify-center space-x-2 mb-6" // Center items
-            >
-              <input
-                type="text"
-                value={tweetId}
-                onChange={(e) => setTweetId(e.target.value)}
-                placeholder="Enter tweet ID to embed"
-                className="px-2 py-1 text-black font-poppins border border-purple-600 w-full max-w-md focus:outline-none focus:ring-0 focus:border-purple-500 transition duration-300" // Adjusted padding for a thinner look
-              />
-              <button
-                type="submit"
-                className="bg-purple-600 text-white font-semibold py-1 px-2 focus:outline-none hover:bg-purple-700 transition duration-300 border border-purple-600" // Adjusted padding for a thinner look
-              >
-                Submit
-              </button>
-            </form>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {embedData.tweetIds.map((id, index) => (
-                <div
-                  key={index}
-                  className="bg-black shadow-md rounded-lg overflow-hidden"
-                  style={{ height: "500px" }}
-                >
-                  <Tweet id={id} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "youtube" && (
-          <div>
-            <form
-              onSubmit={handleYouTubeSubmit}
-              className="flex items-center justify-center space-x-2 mb-8"
-            >
-              <input
-                type="text"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
-                className="px-2 py-1 text-black font-poppins border border-purple-600 w-full max-w-md focus:outline-none focus:ring-0 focus:border-purple-500 transition duration-300" // Sharp input
-                required
-              />
-              <button
-                type="submit"
-                className="bg-purple-600 text-white font-semibold py-1 px-2 focus:outline-none hover:bg-purple-700 transition duration-300 border border-purple-600" // Sharp button
-              >
-                Embed Video
-              </button>
-            </form>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {embedData.youtubeUrls.map((embedUrl, index) => (
-                <div
-                  key={index}
-                  className="relative"
-                  style={{ paddingBottom: "56.25%" }}
-                >
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full"
-                    src={embedUrl}
-                    frameBorder="0"
-                    allowFullScreen
-                    title={`Embedded YouTube Video ${index + 1}`}
-                  ></iframe>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "instagram" && (
-          <div>
-            <form
-              onSubmit={handleInstagramSubmit}
-              className="flex items-center justify-center space-x-2 mb-6" // Center items and side-by-side layout
-            >
-              <input
-                type="text"
-                value={postUrl}
-                onChange={(e) => setPostUrl(e.target.value)}
-                placeholder="Enter Instagram Post URL"
-                className="px-2 py-1 text-black font-poppins border border-purple-600 w-full max-w-md focus:outline-none focus:ring-0 focus:border-purple-500 transition duration-300" // Sharp input
-              />
-              <button
-                type="submit"
-                className="bg-purple-600 text-white font-semibold py-1 px-2 focus:outline-none hover:bg-purple-700 transition duration-300 border border-purple-600" // Sharp button
-              >
-                Submit
-              </button>
-            </form>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {embedData.instagramUrls.map((url, index) => (
-                <div key={index} className="p-4 bg-white shadow-md rounded-lg">
-                  <iframe
-                    src={`https://www.instagram.com/p/${getPostIdFromUrl(
-                      url
-                    )}/embed`}
-                    className="w-full"
-                    frameBorder="0"
-                    scrolling="no"
-                    allowTransparency="true"
-                    allow="encrypted-media"
-                  ></iframe>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div> */}
 
       <div className="rightcol w-5/6 bg-black px-4">
         {activeTab === "twitter" && (
@@ -398,23 +429,38 @@ const SocialMediaIntegration = ({ echo_id }) => {
               </button>
             </form>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {embedData.tweetIds.map((id, index) => (
-                <div
-                  key={index}
-                  className="relative bg-black shadow-md rounded-lg overflow-hidden"
-                  style={{ height: "500px" }}
-                >
-                  {/* Plus sign */}
-                  <CiSquarePlus
-                    className="absolute top-3.5 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
-                    size={30} // Adjust the size as per your preference
-                    onClick={(e) => handleTweetEmbeding(e, id)}
-                  />
-                  <Tweet id={id} />
-                </div>
-              ))}
-            </div>
+            {embedData.tweetIds.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-96">
+                <h1 className="text-white text-4xl font-monte font-extrabold">
+                  Why so empty?
+                </h1>
+                <h2 className="font-monte mt-3 font-bold">
+                  Start adding tweets
+                </h2>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {embedData.tweetIds.map((id, index) => (
+                  <div
+                    key={index}
+                    className="relative bg-black shadow-md rounded-lg overflow-hidden"
+                    style={{ height: "500px" }}
+                  >
+                    <CiSquarePlus
+                      className="absolute top-3.5 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      onClick={(e) => handleTweetEmbeding(e, id)}
+                    />
+                    <Tweet id={id} />
+                    <CiTrash
+                      className="absolute p-1 top-4 right-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      onClick={() => handleDeleteEmbed(id, "tweetIds")}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -440,33 +486,47 @@ const SocialMediaIntegration = ({ echo_id }) => {
               </button>
             </form>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {embedData.youtubeUrls.map((embedUrl, index) => (
-                <div
-                  key={index}
-                  className="relative"
-                  style={{ paddingBottom: "56.25%" }}
-                >
-                  {/* Plus sign */}
-                  <CiSquarePlus
-                    className="absolute top-3.5 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
-                    size={30} // Adjust the size as per your preference
-                    style={{ zIndex: 10 }}
-                    onClick={(e) => handleYoutubeEmbeding(e, embedUrl)}
-                  />
-
-                  {/* YouTube Embed */}
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full"
-                    src={embedUrl}
-                    frameBorder="0"
-                    allowFullScreen
-                    title={`Embedded YouTube Video ${index + 1}`}
-                    style={{ zIndex: 1 }}
-                  ></iframe>
-                </div>
-              ))}
-            </div>
+            {embedData.youtubeUrls.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-96">
+                <h1 className="text-white text-4xl font-monte font-extrabold">
+                  Why so empty?
+                </h1>
+                <h2 className="font-monte mt-3 font-bold">
+                  Start adding YouTube videos
+                </h2>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {embedData.youtubeUrls.map((embedUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative"
+                    style={{ paddingBottom: "56.25%" }}
+                  >
+                    <CiSquarePlus
+                      className="absolute top-3.5 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      style={{ zIndex: 10 }}
+                      onClick={(e) => handleYoutubeEmbeding(e, embedUrl)}
+                    />
+                    <iframe
+                      className="absolute top-0 left-0 w-full h-full"
+                      src={embedUrl}
+                      frameBorder="0"
+                      allowFullScreen
+                      title={`Embedded YouTube Video ${index + 1}`}
+                      style={{ zIndex: 1 }}
+                    ></iframe>
+                    <CiTrash
+                      className="absolute p-1 top-3.5 right-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      style={{ zIndex: 10 }}
+                      onClick={() => handleDeleteEmbed(embedUrl, "youtubeUrls")}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -491,36 +551,49 @@ const SocialMediaIntegration = ({ echo_id }) => {
               </button>
             </form>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {embedData.instagramUrls.map((url, index) => (
-                <div
-                  key={index}
-                  className="relative shadow-md rounded-lg"
-                  style={{ height: "500px" }} // Adjust the height of the container here
-                >
-                  {/* Plus sign */}
-                  <CiSquarePlus
-                    className="absolute top-1 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
-                    size={30}
-                    style={{ zIndex: 10 }}
-                    onClick={(e) => handleInstagramEmbeding(e, url)}
-                  />
-
-                  {/* Instagram Embed */}
-                  <iframe
-                    src={`https://www.instagram.com/p/${getPostIdFromUrl(
-                      url
-                    )}/embed`}
-                    className="absolute top-0 left-0 w-full h-full" // Ensure the iframe takes full height and width of the container
-                    frameBorder="0"
-                    scrolling="no"
-                    allowTransparency="true"
-                    allow="encrypted-media"
-                    style={{ height: "100%" }} // Ensure iframe respects container height
-                  ></iframe>
-                </div>
-              ))}
-            </div>
+            {embedData.instagramUrls.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-96">
+                <h1 className="text-white text-4xl font-monte font-extrabold">
+                  Why so empty?
+                </h1>
+                <h2 className="font-monte mt-3 font-bold">
+                  Start adding Instagram posts
+                </h2>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {embedData.instagramUrls.map((url, index) => (
+                  <div
+                    key={index}
+                    className="relative shadow-md rounded-lg"
+                    style={{ height: "500px" }}
+                  >
+                    <CiSquarePlus
+                      className="absolute top-1 left-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      style={{ zIndex: 10 }}
+                      onClick={(e) => handleInstagramEmbeding(e, url)}
+                    />
+                    <iframe
+                      src={`https://www.instagram.com/p/${getPostIdFromUrl(
+                        url
+                      )}/embed`}
+                      className="absolute top-0 left-0 w-full h-full"
+                      frameBorder="0"
+                      scrolling="no"
+                      allowTransparency="true"
+                      allow="encrypted-media"
+                      style={{ height: "100%" }}
+                    ></iframe>
+                    <CiTrash
+                      className="absolute p-1 top-1 right-1 bg-black text-white cursor-pointer hover:text-gray-200 transition duration-300"
+                      size={30}
+                      onClick={() => handleDeleteEmbed(url, "instagramUrls")}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

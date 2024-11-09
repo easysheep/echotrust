@@ -8,10 +8,12 @@ import {
 } from "@google/generative-ai";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { QRCodeCanvas } from "qrcode.react"; // Import QRCode component
+import toast from "react-hot-toast";
 
 import { FaStar } from "react-icons/fa";
 import { FaPaperclip } from "react-icons/fa";
 import { motion } from "framer-motion";
+import LoadingAnimation from "@/components/LoadingAnimation";
 
 const ReviewPage = ({ params }) => {
   const echo_name = params.echo_name;
@@ -43,7 +45,7 @@ const ReviewPage = ({ params }) => {
     "https://media.giphy.com/media/zRKJFP8sOSL6Zu7I7j/giphy.gif",
     "https://media.giphy.com/media/SIBtjtIUgkewDtm65R/giphy.gif",
     "https://media.giphy.com/media/pneG7YsDljrFo2nuFR/giphy.gif",
-    "https://media.giphy.com/media/yD5vFVwjK0ZRLgoh65/giphy.gif"
+    "https://media.giphy.com/media/yD5vFVwjK0ZRLgoh65/giphy.gif",
   ];
 
   const [aiResponse, setAiResponse] = useState(""); // Store AI response
@@ -87,14 +89,6 @@ const ReviewPage = ({ params }) => {
     }
   }, [echo_name]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
   const handleStarClick = (rating) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -102,9 +96,50 @@ const ReviewPage = ({ params }) => {
     }));
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!isSignedIn) {
+  //     signIn(); // Prompt user to sign in
+  //     return;
+  //   }
+  //   console.log("user info", user);
+
+  //   const payload = {
+  //     ...formData,
+  //     username: `${user?.firstName} ${user?.lastName}`.trim() || "Anonymous",
+  //     useremail:
+  //       user?.primaryEmailAddress?.emailAddress || "no-email@domain.com",
+  //     userimageurl: user?.imageUrl || "/default-avatar.png",
+  //   };
+
+  //   console.log("Payload:", payload); // Check payload before submission
+
+  //   try {
+  //     const response = await fetch(`/api/review/${echo_name}`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(payload), // Send payload with user data
+  //     });
+
+  //     if (response.ok) {
+  //       const result = await response.json();
+  //       console.log("Review created successfully:", result);
+  //       await runAI(hardCodedPrompt); // Run AI prompt after successful review creation
+  //     } else {
+  //       console.error("Failed to create review");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during form submission:", error);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check if the user is signed in
     if (!isSignedIn) {
       signIn(); // Prompt user to sign in
       return;
@@ -119,7 +154,12 @@ const ReviewPage = ({ params }) => {
       userimageurl: user?.imageUrl || "/default-avatar.png",
     };
 
-    console.log("Payload:", payload); // Check payload before submission
+    console.log("Payload:", payload); // Log the payload before submission
+
+    // Display a loading toast while the submission is in progress
+    toast.loading("Submitting your review...", {
+      id: "submit-toast", // Assign a unique ID to this toast for update
+    });
 
     try {
       const response = await fetch(`/api/review/${echo_name}`, {
@@ -127,18 +167,52 @@ const ReviewPage = ({ params }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload), // Send payload with user data
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const result = await response.json();
         console.log("Review created successfully:", result);
+
+        // Update the toast to success after submission completes
+        toast.success("Review created successfully!", {
+          id: "submit-toast", // Match the ID to replace the loading toast
+          icon: "✅",
+          style: {
+            border: "1px solid #34D399",
+            padding: "16px",
+            color: "#4CAF50",
+          },
+        });
+
         await runAI(hardCodedPrompt); // Run AI prompt after successful review creation
       } else {
         console.error("Failed to create review");
+
+        // Update the toast to error if submission fails
+        toast.error("Failed to create review. Please try again.", {
+          id: "submit-toast", // Match the ID to replace the loading toast
+          icon: "❌",
+          style: {
+            border: "1px solid #F87171",
+            padding: "16px",
+            color: "#DC2626",
+          },
+        });
       }
     } catch (error) {
       console.error("Error during form submission:", error);
+
+      // Update the toast to error if there's a network or other error
+      toast.error("An unexpected error occurred. Please try again.", {
+        id: "submit-toast",
+        icon: "❌",
+        style: {
+          border: "1px solid #F87171",
+          padding: "16px",
+          color: "#DC2626",
+        },
+      });
     }
   };
 
@@ -192,7 +266,7 @@ const ReviewPage = ({ params }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingAnimation></LoadingAnimation>;
   }
 
   if (error) {

@@ -3,7 +3,6 @@ import connectToMongo from "../../../../../dbs/mongodb"; // Function to connect 
 import WallOfTrust from "@/../models/walloftrustCreate"; // Function to
 import mongoose from "mongoose";
 
-
 export async function GET(request, { params }) {
   try {
     await connectToMongo(); // Ensure DB connection is established
@@ -16,7 +15,9 @@ export async function GET(request, { params }) {
     }
 
     // Fetch WallOfTrust document with populated 'reviews' references
-    const wallOfTrustData = await WallOfTrust.findOne({ echoId: echo_id }).populate("reviews");
+    const wallOfTrustData = await WallOfTrust.findOne({
+      echoId: echo_id,
+    }).populate("reviews");
 
     if (!wallOfTrustData) {
       return NextResponse.json(
@@ -45,66 +46,13 @@ export async function GET(request, { params }) {
   }
 }
 
-// export async function POST(req, { params }) {
-//   // Ensure the DB is connected
-//   await connectToMongo();
-//   const { echo_id } = params;
-//   console.log("Received echoId on backend:", echo_id);
-
-//   if (!mongoose.Types.ObjectId.isValid(echo_id)) {
-//     console.error("Invalid Echo ID:", echo_id);
-//     return NextResponse.json({ error: "Invalid Echo ID" }, { status: 400 });
-//   }
-
-//   const { reviewId } = await req.json();
-//   console.log("Received reviewId on backend:", reviewId);
-
-//   try {
-//     // Ensure the echoId is valid
-//     if (!mongoose.Types.ObjectId.isValid(echo_id)) {
-//       return NextResponse.json({ error: "Invalid Echo ID" }, { status: 400 });
-//     }
-
-//     // Check if a WallOfTrust with this echoId exists
-//     let wallOfTrust = await WallOfTrust.findOne({ echo_id });
-
-//     if (wallOfTrust) {
-//       // If found, update the existing WallOfTrust document by adding the reviewId
-//       wallOfTrust = await WallOfTrust.findOneAndUpdate(
-//         { echo_id },
-//         { $addToSet: { reviews: reviewId } }, // Prevent duplicates
-//         { new: true } // Return the updated document
-//       );
-//     } else {
-//       // If not found, create a new WallOfTrust document with the echoId and reviewId
-//       wallOfTrust = new WallOfTrust({
-//         echoId: echo_id, // Changed to echoId
-//         reviews: [reviewId], // Initialize with the provided reviewId
-//         embeds: [], // Initialize embeds as empty (or set it based on your needs)
-//       });
-
-//       // Save the newly created document
-//       await wallOfTrust.save();
-//     }
-
-//     // Return the updated or created WallOfTrust document
-//     return NextResponse.json(wallOfTrust, { status: 200 });
-//   } catch (error) {
-//     console.error("Error creating or updating WallOfTrust:", error);
-//     return NextResponse.json(
-//       { error: "Failed to create or update WallOfTrust" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 export async function POST(req, { params }) {
   // Ensure the DB is connected
   await connectToMongo();
-  
+
   const { echo_id } = params; // Extract the echo_id from the URL params
   console.log("Received echoId on backend:", echo_id);
-  
+
   // Validate echoId
   if (!mongoose.Types.ObjectId.isValid(echo_id)) {
     console.error("Invalid Echo ID:", echo_id);
@@ -112,7 +60,12 @@ export async function POST(req, { params }) {
   }
 
   // Extract the reviewId and other fields from the request body
-  const { reviewId, tweetIds = [], youtubeUrls = [], instagramUrls = [] } = await req.json();
+  const {
+    reviewId,
+    tweetIds = [],
+    youtubeUrls = [],
+    instagramUrls = [],
+  } = await req.json();
   console.log("Received reviewId on backend:", reviewId);
 
   try {
@@ -124,11 +77,15 @@ export async function POST(req, { params }) {
       // If found, update the WallOfTrust document by adding the reviewId and keeping other fields intact
       wallOfTrust = await WallOfTrust.findOneAndUpdate(
         { echoId: echo_id }, // Search by echoId
-        { 
+        {
           $addToSet: { reviews: reviewId }, // Add reviewId if not already present
           tweetIds: tweetIds.length ? tweetIds : wallOfTrust.tweetIds, // Update tweetIds if provided
-          youtubeUrls: youtubeUrls.length ? youtubeUrls : wallOfTrust.youtubeUrls, // Update YouTube URLs
-          instagramUrls: instagramUrls.length ? instagramUrls : wallOfTrust.instagramUrls, // Update Instagram URLs
+          youtubeUrls: youtubeUrls.length
+            ? youtubeUrls
+            : wallOfTrust.youtubeUrls, // Update YouTube URLs
+          instagramUrls: instagramUrls.length
+            ? instagramUrls
+            : wallOfTrust.instagramUrls, // Update Instagram URLs
         },
         { new: true } // Return the updated document
       );
@@ -156,5 +113,53 @@ export async function POST(req, { params }) {
       { error: "Failed to create or update WallOfTrust" },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(request, { params }) {
+  const { echo_id } = params; // Use `echo_id` from URL params
+  const { embedType, embedValue } = await request.json(); // Extract `embedType` and `embedValue` from the request body
+
+  console.log("Received embedType:", embedType); // Log embedType
+  console.log("Received embedValue:", embedValue); // Log embedValue
+  console.log("Received echo_id:", echo_id); // Log echo_id for debugging
+
+  try {
+      await connectToMongo(); // Connect to MongoDB
+
+      // Validate echo_id format
+      if (!mongoose.Types.ObjectId.isValid(echo_id)) {
+          return NextResponse.json({ message: "Invalid Echo ID" }, { status: 400 });
+      }
+
+      // Define the field to update based on embedType
+      const fieldToUpdate = {
+          tweet: "tweetIds",
+          youtube: "youtubeUrls",
+          instagram: "instagramUrls",
+          review: "reviews" // Assuming `reviews` is the correct field for `review`
+      }[embedType];
+
+      if (!fieldToUpdate) {
+          console.error("Invalid embed type:", embedType);
+          return NextResponse.json({ message: "Invalid embed type" }, { status: 400 });
+      }
+
+      // Update the WallOfTrust document by removing the specified embedValue
+      const result = await WallOfTrust.findOneAndUpdate(
+          { echoId: echo_id }, // Query by echoId field in the document
+          { $pull: { [fieldToUpdate]: embedValue } }, // Remove embedValue from the specified field
+          { new: true } // Return updated document
+      );
+
+      if (!result) {
+          console.error("WallOfTrust document not found for echo_id:", echo_id);
+          return NextResponse.json({ message: "WallOfTrust document not found" }, { status: 404 });
+      }
+
+      return NextResponse.json({ message: "Embed deleted successfully", data: result });
+  } catch (error) {
+      console.error("Error deleting embed:", error);
+      return NextResponse.json({ message: "Failed to delete embed", error }, { status: 500 });
   }
 }

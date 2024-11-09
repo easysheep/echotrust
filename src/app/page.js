@@ -1,10 +1,14 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import Navbar from "./components/Navbar";
 import Link from "next/link";
-import BottomBar from "./components/BottomBar";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css"; // Import core Swiper styles
@@ -22,6 +26,9 @@ import {
   EffectFade,
   EffectFlip,
 } from "swiper/modules"; // Import Pagination styles if needed
+import { ReactTyped } from "react-typed";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "react-hot-toast";
 
 export default function Home() {
   const containerVariants = {
@@ -33,12 +40,25 @@ export default function Home() {
     },
   };
 
+  const { isSignedIn } = useUser(); // Check if the user is signed in
+
+  const handleLinkClick = (event, redirectPath) => {
+    if (!isSignedIn) {
+      event.preventDefault(); // Prevent default link behavior
+      toast.error("You need to sign in to access echoes."); // Show the error toast
+    }
+  };
+
   // Define refs and inView states
   const ref1 = useRef(null);
   const ref2 = useRef(null);
   const ref3 = useRef(null);
   const ref4 = useRef(null);
   const ref5 = useRef(null);
+  const pricingRef = useRef(null);
+  const featuresRef = useRef(null);
+  const customerRef = useRef(null);
+  const introRef = useRef(null);
 
   const isInView1 = useInView(ref1, { once: false });
   const isInView2 = useInView(ref2, { once: false });
@@ -46,11 +66,83 @@ export default function Home() {
   const isInView4 = useInView(ref4, { once: false });
   const isInView5 = useInView(ref5, { once: false });
   console.log(process.env.GOOGLE_CLIENT_ID);
+  const triggerAnimation = () => {
+    // Remove and re-add the "go" class to reset the animation
+    if (introRef.current) {
+      introRef.current.classList.remove("go");
+      void introRef.current.offsetWidth; // Trigger reflow to restart animation
+      introRef.current.classList.add("go");
+    }
+  };
+
+  useEffect(() => {
+    // Trigger the animation on the initial load
+    triggerAnimation();
+  }, []);
 
   return (
     <>
       <main className="bg-moving-gradient bg-[length:200%_200%] animate-gradient-move h-screen w-full flex flex-col ">
-        <Navbar />
+        <div className="flex items-center h-20 px-28 justify-between">
+          <div className="flex gap-10 font-roboto font-medium ">
+            {/* Left Side: Pricing and Features */}
+            <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+              <button
+                onClick={() =>
+                  pricingRef.current.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Pricing
+              </button>
+            </p>
+            <p className="text-white text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+              <button
+                onClick={() =>
+                  featuresRef.current.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Features
+              </button>
+            </p>
+            <p className="text-white text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+              <button
+                onClick={() =>
+                  customerRef.current.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Customers
+              </button>
+            </p>
+          </div>
+
+          {/* Center Title */}
+          <div
+            className="flex text-center text-5xl font-protest tracking-tight text-white"
+            style={{
+              textShadow:
+                "0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)",
+            }}
+          >
+            E c h o T r u s t
+          </div>
+
+          {/* Right Side: Sign In / Sign Up */}
+          <div className="flex gap-4">
+            <SignedIn>
+              <div className="flex items-center gap-2">
+                <UserButton afterSignOutUrl="/" />
+                <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default"></p>
+              </div>
+            </SignedIn>
+
+            <SignedOut>
+              <div className="flex items-center gap-10">
+                <SignInButton className="text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer text-white" />
+                <SignUpButton className="text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer text-white" />
+              </div>
+            </SignedOut>
+          </div>
+        </div>
 
         <div
           className="flex-grow flex items-center w-full justify-center gap-3 px-10 "
@@ -58,12 +150,22 @@ export default function Home() {
         >
           <div className="left w-full">
             <div className="text-extrabold text-5xl decoration-8 decoration-solid mb-5 text-white">
-              <div className="text-sm font-monte">
-                Tired of dealing with scattered, disorganized product reviews?
-                We’ve got you covered.
+              <div className=" font-monte typewriter text-2xl ">
+                <ReactTyped
+                  strings={[
+                    "Tired of dealing with scattered, disorganized product reviews?",
+                    "We’ve got you covered.",
+                  ]}
+                  typeSpeed={50} // Speed at which text is typed
+                  backSpeed={0} // Speed at which text is deleted
+                  backDelay={1000} // Delay before starting to delete text
+                  startDelay={500} // Delay before starting to type
+                  loop={true} // Whether the typing animation should repeat
+                  showCursor={true} // Show a blinking cursor
+                />
               </div>
 
-              <div className="text-4xl font-poppins font-600">
+              <div className="text-4xl font-poppins font-600 hollow-text">
                 Curate and showcase feedback and testimonials
               </div>
               <div className="text-lg font-monte">
@@ -79,13 +181,15 @@ export default function Home() {
             <div className="flex gap-4">
               <Link
                 href="/echo"
-                className="bg-black text-white py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow"
+                className="bg-black text-white py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek"
+                onClick={(e) => handleLinkClick(e, "/echo")} // Add onClick handler for "Create Echoes"
               >
                 Create Echoes
               </Link>
               <Link
                 href="/echolist"
-                className="bg-white text-black py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow"
+                className="bg-white text-black py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek"
+                onClick={(e) => handleLinkClick(e, "/echolist")} // Add onClick handler for "My Echoes"
               >
                 My Echoes
               </Link>
@@ -96,7 +200,10 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="flex-col flex items-center w-full justify-center gap-3 px-10 border-l-[20px] pt-10 border-r-[20px] border-black bg-black text-white">
+      {/* <div
+        ref={featuresRef}
+        className=" flex-col flex items-center w-full justify-center gap-3 px-10 border-l-[20px] pt-10 border-r-[20px] border-black bg-black text-white"
+      >
         <motion.div
           className="flex w-full gap-4 my-12"
           initial="hidden"
@@ -129,7 +236,7 @@ export default function Home() {
           ref={ref3}
         >
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
-            Analyze your echo's impact.
+            Stunning reviewpage with all the necessary details
           </div>
         </motion.div>
 
@@ -156,9 +263,116 @@ export default function Home() {
             Dedicated feedback page and Dashboard.
           </div>
         </motion.div>
+      </div> */}
+      <div
+        ref={featuresRef}
+        className="flex-col flex items-center w-full justify-center gap-3 px-10 border-l-[20px] pt-10 border-r-[20px] border-black bg-black text-white"
+      >
+        <motion.div
+          className="flex w-full gap-4 my-12"
+          initial="hidden"
+          animate={isInView1 ? "visible" : "hidden"}
+          variants={containerVariants}
+          ref={ref1}
+        >
+          <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
+            Gather feedback quick and easy.
+          </div>
+          {/* Image Container */}
+          <div className="w-4/6 flex justify-center">
+            <img
+              src="rev.png"
+              alt="Image description here"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex-row-reverse w-full gap-4 flex my-12"
+          initial="hidden"
+          animate={isInView2 ? "visible" : "hidden"}
+          variants={containerVariants}
+          ref={ref2}
+        >
+          <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
+            Assemble reviews from across the web.
+          </div>
+          {/* Image Container */}
+          <div className="w-4/6 flex justify-center items-center border-2 border-white">
+            <img
+              src="embd.png"
+              alt="Image description"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex w-full gap-4 my-12"
+          initial="hidden"
+          animate={isInView3 ? "visible" : "hidden"}
+          variants={containerVariants}
+          ref={ref3}
+        >
+          <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
+            Stunning reviewpage with all the necessary details
+          </div>
+          {/* Image Container */}
+          <div className="w-4/6 flex items-center justify-center">
+            <img
+              src="echo.png"
+              alt="Image description"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex-row-reverse w-full gap-4 flex my-12"
+          initial="hidden"
+          animate={isInView4 ? "visible" : "hidden"}
+          variants={containerVariants}
+          ref={ref4}
+        >
+          <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
+            Embed the wall of trust.
+          </div>
+          {/* Image Container */}
+          <div className="w-4/6">
+            <img
+              src="your-image-url-here.jpg"
+              alt="Image description"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex w-full gap-4 my-12"
+          initial="hidden"
+          animate={isInView5 ? "visible" : "hidden"}
+          variants={containerVariants}
+          ref={ref5}
+        >
+          <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
+            Dedicated feedback page and Dashboard.
+          </div>
+          {/* Image Container */}
+          <div className="w-4/6 flex justify-center items-center border-2 border-white">
+            <img
+              src="dash.png"
+              alt="Image description"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+        </motion.div>
       </div>
 
-      <div className="bg-[#5C2FC5] h-[calc(100vh-120px)] p-10 flex pt-20">
+      <div
+        className="bg-[#5C2FC5] h-[calc(100vh-120px)] p-10 flex pt-20"
+        ref={customerRef}
+      >
         <div className="left w-2/6 text-center justify-center items-center flex-col flex">
           <h2 className="text-6xl font-extrabold mb-2 text-white font-monte break-words inline-flex items-center">
             Why Our Customers Love Us!
@@ -184,50 +398,70 @@ export default function Home() {
           <Swiper
             modules={[Navigation, Pagination, Scrollbar, A11y, EffectFlip]}
             spaceBetween={40}
-            slidesPerView={1} // Flip one slide at a time
+            slidesPerView={1}
             centeredSlides={true}
             loop={true}
             navigation
             pagination={{ clickable: true }}
-            effect="flip" // Apply the Flip effect
+            effect="flip"
             flipEffect={{
-              slideShadows: false, // Optional: Disable shadows for a cleaner flip
+              slideShadows: false,
             }}
-            className="w-3/4 h-80 flex items-center justify-center" // Set fixed width and height to center the swiper
+            className="w-3/4 h-80 flex items-center justify-center"
           >
-            {/* Example Cards */}
+            {/* Example Aggregated Review Cards */}
             <SwiperSlide>
               <div className="flex items-center h-full w-full">
-                <div className="cards h-4/6 w-5/6 bg-white text-black flex items-center justify-center rounded-lg mx-auto">
-                  Good one service
+                <div className="cards h-4/6 w-5/6 bg-white text-black flex flex-col items-center justify-center rounded-lg shadow-lg mx-auto p-4">
+                  <p className="text-lg font-semibold text-center">
+                    "Outstanding service and quality!"
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    - Alex T., Sunrise Café
+                  </p>
+                  <p className="text-xs text-gray-500">Chicago, IL</p>
                 </div>
               </div>
             </SwiperSlide>
+
             <SwiperSlide>
               <div className="flex items-center h-full w-full">
-                <div className="cards h-4/6 w-5/6 bg-white text-black flex items-center justify-center rounded-lg mx-auto">
-                  Excellent feedback
+                <div className="cards h-4/6 w-5/6 bg-white text-black flex flex-col items-center justify-center rounded-lg shadow-lg mx-auto p-4">
+                  <p className="text-lg font-semibold text-center">
+                    "A perfect platform to grow my business online!"
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    - Jamie B., Tech Solutions
+                  </p>
+                  <p className="text-xs text-gray-500">San Diego, CA</p>
                 </div>
               </div>
             </SwiperSlide>
+
             <SwiperSlide>
               <div className="flex items-center h-full w-full">
-                <div className="cards h-4/6 w-5/6 bg-white text-black flex items-center justify-center rounded-lg mx-auto">
-                  Great experience!
+                <div className="cards h-4/6 w-5/6 bg-white text-black flex flex-col items-center justify-center rounded-lg shadow-lg mx-auto p-4">
+                  <p className="text-lg font-semibold text-center">
+                    "Highly recommend for boosting online presence!"
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    - Laura S., Blossom Florist
+                  </p>
+                  <p className="text-xs text-gray-500">Denver, CO</p>
                 </div>
               </div>
             </SwiperSlide>
+
             <SwiperSlide>
               <div className="flex items-center h-full w-full">
-                <div className="cards h-4/6 w-5/6 bg-white text-black flex items-center justify-center rounded-lg mx-auto">
-                  Amazing product!
-                </div>
-              </div>
-            </SwiperSlide>
-            <SwiperSlide>
-              <div className="flex items-center h-full w-full">
-                <div className="cards h-4/6 w-5/6 bg-white text-black flex items-center justify-center rounded-lg mx-auto">
-                  Love this service!
+                <div className="cards h-4/6 w-5/6 bg-white text-black flex flex-col items-center justify-center rounded-lg shadow-lg mx-auto p-4">
+                  <p className="text-lg font-semibold text-center">
+                    "Helped us attract more customers through online reviews!"
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    - Raj P., Ocean View Hotel
+                  </p>
+                  <p className="text-xs text-gray-500">Miami Beach, FL</p>
                 </div>
               </div>
             </SwiperSlide>
@@ -299,7 +533,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="w-2/6 text-white p-10 h-full">
+        <div ref={pricingRef} className="w-2/6 text-white p-10 h-full">
           <div className="text-7xl font-extrabold font-monte">Pricing,</div>
           <div className="text-xl font-light mt-4 font-poppins">
             Affordable plans that fit your needs. Unlock premium features

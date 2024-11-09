@@ -10,3 +10,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+.hollow-text {
+    font-size: 3rem;
+    /* Adjust as needed */
+    font-weight: bold;
+    -webkit-text-stroke: 2px #ffffff;
+    /* White border/stroke */
+    color: transparent;
+    /* Transparent text */
+    animation: hollowTextAnimation 2s infinite;
+    /* Loop animation */
+}
