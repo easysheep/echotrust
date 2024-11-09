@@ -341,7 +341,7 @@ export default function Home() {
           {/* Image Container */}
           <div className="w-4/6">
             <img
-              src="your-image-url-here.jpg"
+              src="wall3.png"
               alt="Image description"
               className="w-full h-full object-cover rounded-lg"
             />

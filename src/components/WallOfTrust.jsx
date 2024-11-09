@@ -120,54 +120,6 @@ const WallOfTrust = ({ echoId, isEmbed = false }) => {
   const filledLargeData = largeBoxIndices.map(
     (_, index) => combinedLargeData[index] || { type: "empty" }
   );
-
-  // const deleteEmbed = async (embedType, embedValue) => {
-  //   console.log("deleteEmbed called with:", { embedType, embedValue });
-
-  //   try {
-  //     // Sending the DELETE request to the specified API endpoint
-  //     const response = await fetch(`/api/walloftrust/${echoId}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json", // Set the content type to JSON
-  //       },
-  //       body: JSON.stringify({ embedType, embedValue }), // Send embedType and embedValue in the request body
-  //     });
-
-  //     // Log the response status
-  //     console.log("Response Status:", response.status);
-
-  //     // Check if the response is not OK
-  //     if (!response.ok) {
-  //       // Attempt to parse the response as JSON for detailed error messages
-  //       let errorData;
-  //       try {
-  //         errorData = await response.json();
-  //       } catch (jsonError) {
-  //         console.error("Failed to parse error response as JSON:", jsonError);
-  //         const text = await response.text(); // Get response as text to see if it's HTML or another format
-  //         console.error("Response text:", text);
-  //         return;
-  //       }
-
-  //       console.error(
-  //         "Failed to delete embed:",
-  //         errorData.message || "Unknown error"
-  //       );
-  //       return;
-  //     }
-
-  //     // Parse the successful response data
-  //     const data = await response.json();
-  //     console.log("Embed deleted successfully:", data);
-
-  //     // Optionally, update your state here if needed to remove the deleted embed from the UI
-  //   } catch (error) {
-  //     // Log any other errors that occur during the fetch
-  //     console.error("Error deleting embed:", error);
-  //   }
-  // };
-
   const deleteEmbed = async (embedType, embedValue) => {
     console.log("deleteEmbed called with:", { embedType, embedValue });
 
@@ -220,6 +172,13 @@ const WallOfTrust = ({ echoId, isEmbed = false }) => {
       }
     );
   };
+
+  function truncateText(text, wordLimit) {
+    const words = text.split(" ");
+    return words.length > wordLimit
+      ? words.slice(0, wordLimit).join(" ") + "..."
+      : text;
+  }
 
   const renderSmallBox = (index) => {
     const data = filledData[index];
@@ -276,7 +235,7 @@ const WallOfTrust = ({ echoId, isEmbed = false }) => {
                   </div>
                 </div>
                 <div className="mt-3 italic font-poppins font-semibold">
-                  - {data.content.note}
+                  - {truncateText(data.content.note, 30)}
                 </div>
               </div>
             </div>
@@ -331,6 +290,7 @@ const WallOfTrust = ({ echoId, isEmbed = false }) => {
       </div>
     );
   };
+  
 
   return (
     <div className="bg-black">
