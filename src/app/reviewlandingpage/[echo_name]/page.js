@@ -96,46 +96,6 @@ const ReviewPage = ({ params }) => {
     }));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   if (!isSignedIn) {
-  //     signIn(); // Prompt user to sign in
-  //     return;
-  //   }
-  //   console.log("user info", user);
-
-  //   const payload = {
-  //     ...formData,
-  //     username: `${user?.firstName} ${user?.lastName}`.trim() || "Anonymous",
-  //     useremail:
-  //       user?.primaryEmailAddress?.emailAddress || "no-email@domain.com",
-  //     userimageurl: user?.imageUrl || "/default-avatar.png",
-  //   };
-
-  //   console.log("Payload:", payload); // Check payload before submission
-
-  //   try {
-  //     const response = await fetch(`/api/review/${echo_name}`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(payload), // Send payload with user data
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log("Review created successfully:", result);
-  //       await runAI(hardCodedPrompt); // Run AI prompt after successful review creation
-  //     } else {
-  //       console.error("Failed to create review");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during form submission:", error);
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -400,20 +360,6 @@ const ReviewPage = ({ params }) => {
               </form>
             </div>
 
-            {/* Shareable link and QR code */}
-            {/* <div className="mt-4">
-            <h2>Share this review page:</h2>
-            <p>
-              <a href={reviewLink} target="_blank" rel="noopener noreferrer">
-                {reviewLink}
-              </a>
-            </p>
-
-            <div className="mt-2">
-              <h3>Generate QR Code:</h3>
-              <QRCodeCanvas value={reviewLink} size={128} />
-            </div>
-          </div> */}
 
             <div className="flex">
               <div className="font-greek font-bold">Owner: &nbsp;</div>
@@ -442,25 +388,7 @@ const ReviewPage = ({ params }) => {
             }}
             exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }} // Smooth exit animation
           >
-            {/* <p>
-              <div
-                style={{
-                  width: "100%",
-                  height: 0,
-                  paddingBottom: "83%",
-                  position: "relative",
-                }}
-              >
-                <img
-                  src="https://media.giphy.com/media/ZfK4cXKJTTay1Ava29/giphy.gif"
-                  width="100%"
-                  height="100%"
-                  style={{ position: "absolute" }}
-                  alt="GIF from The Office"
-                />
-              </div>
 
-            </p> */}
 
             <div
               style={{

@@ -24,47 +24,7 @@ export default function FormPage() {
   const { user } = useUser();
   const router = useRouter();
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   if (!echo_logo) {
-  //     alert("Please upload an image");
-  //     return;
-  //   }
-
-  //   try {
-  //     // Convert the image file to a base64 string
-  //     const base64Image = await toBase64(echo_logo);
-
-  //     const res = await fetch("/api/echoes", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         echo_name,
-  //         echo_title,
-  //         echo_details,
-  //         echo_message,
-  //         sender_name,
-  //         attachment,
-  //         echo_logo: base64Image,
-  //         user: user.id, // Send the base64 string
-  //       }),
-  //     });
-
-  //     if (!res.ok) {
-  //       throw new Error("Failed to submit form");
-  //     }
-
-  //     const data = await res.json();
-  //     setMessage(data.message);
-  //     router.push(`/reviewlandingpage/${echo_name}`);
-  //   } catch (error) {
-  //     console.error("Error submitting form:", error);
-  //     setMessage("Error submitting form");
-  //   }
-  // };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -256,35 +256,6 @@ const Dashboard = ({ params }) => {
         return <SocialMediaIntegration echo_id={echo_id} />;
       case "analytics":
         return (
-          // <div className="bg-black flex">
-          //   <div className="leftsd w-2/6 flex flex-col items-center flex-start">
-          //     <Analytics reviews={filteredReviews} />
-          //     <div className="flex justify-center space-x-4 items-center">
-          //       {" "}
-          //       {/* Add margin on top for spacing */}
-          //       <div className="bg-black rounded-lg shadow-md text-center">
-          //         <p className="text-6xl">{averageRating}</p>
-          //         <h3 className="text-sm font-monte ">Average Rating</h3>
-          //       </div>
-          //       <div className="bg-black  rounded-lg shadow-md text-center">
-          //         <p className="text-6xl">{totalReviews}</p>
-          //         <h3 className="text-sm font-monte ">Number of Reviews</h3>
-          //       </div>
-          //     </div>
-          //   </div>
-          //   <div className="rightsd w-4/6 flex flex-col ">
-          //     {" "}
-          //     <LineChart reviews={reviews} />
-          //     <div className="bg-black p-4 rounded-lg shadow-md text-center">
-          //       <p className="text-xl">{averageReviewLength} characters</p>
-          //       <h3 className="text-lg font-bold">Average Review Length</h3>
-          //     </div>
-          //     <div className="bg-black p-4 rounded-lg shadow-md text-center">
-          //       <p className="text-xl">{averageReviewWords} words</p>
-          //       <h3 className="text-lg font-bold">Average Words Per Review </h3>
-          //     </div>
-          //   </div>
-          // </div>
 
           <div className="bg-black flex flex-col px-6 py-4">
             {/* Top container for Analytics and LineChart */}
