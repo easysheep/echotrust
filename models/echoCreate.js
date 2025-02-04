@@ -2,19 +2,6 @@ import mongoose, { Schema } from "mongoose";
 
 const echoCreateSchema = new Schema(
   {
-
-    // name: {
-    //   type: String,
-    //   required: true,
-    // },
-    // age: {
-    //   type: Number,
-    //   required: true,
-    // },
-    // image: {
-    //   type: String, // URL or base64-encoded string
-    //   required: true,
-    // },
     echo_name: {
       type: String,
       required: true,

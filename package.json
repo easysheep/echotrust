@@ -28,7 +28,9 @@
     "next-auth": "^4.24.7",
     "next-connect": "^1.0.0",
     "openai": "^4.58.0",
+    "prom-client": "^15.1.3",
     "qrcode.react": "^4.0.1",
+    "razorpay": "^2.9.5",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.4.1",
@@ -39,7 +41,9 @@
     "recharts": "^2.12.7",
     "swiper": "^11.1.14",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "winston": "^3.17.0",
+    "winston-loki": "^6.1.3"
   },
   "devDependencies": {
     "postcss": "^8",

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -11,8 +11,8 @@ import {
 } from "@clerk/nextjs";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css"; // Import core Swiper styles
-import "swiper/css/navigation"; // Import Navigation styles if needed
+import "swiper/css"; 
+import "swiper/css/navigation"; 
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import "swiper/css/effect-fade";
@@ -25,7 +25,7 @@ import {
   EffectCoverflow,
   EffectFade,
   EffectFlip,
-} from "swiper/modules"; // Import Pagination styles if needed
+} from "swiper/modules"; 
 import { ReactTyped } from "react-typed";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
@@ -40,16 +40,78 @@ export default function Home() {
     },
   };
 
-  const { isSignedIn } = useUser(); // Check if the user is signed in
+  const { isSignedIn, user } = useUser(); 
+
+  const [userPlan, setUserPlan] = useState("free"); 
+  const [allowedEchoes, setAllowedEchoes] = useState(10); 
+  const [currentEchoes, setCurrentEchoes] = useState(0);
+
+  useEffect(() => {
+
+    const fetchUserPlan = async () => {
+      if (!user?.id) return; 
+      console.log("Fetching plan for user ID:", user.id);
+
+      try {
+    
+        const response = await fetch(`/api/subscription/${user.id}`, {
+          method: "GET", 
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch subscription details");
+        }
+
+        const data = await response.json();
+        setAllowedEchoes(data?.echoLimit || 10);
+        setUserPlan(data?.plan || "free"); 
+
+        console.log(
+          "Plan and limit are " + data?.plan + " and " + data?.echoLimit
+        );
+      } catch (error) {
+        console.error("Error fetching user plan:", error);
+        setUserPlan("free"); 
+      }
+    };
+
+    const fetchEchoes = async () => {
+      try {
+        const response = await fetch(`/api/echolist/${user?.id}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json(); 
+        setCurrentEchoes(data.length); 
+        console.log("Response data is:", data);
+      } catch (error) {
+        console.error("Error fetching echoes:", error);
+      }
+    };
+
+    fetchEchoes();
+
+    fetchUserPlan();
+  }, [user]); 
 
   const handleLinkClick = (event, redirectPath) => {
     if (!isSignedIn) {
-      event.preventDefault(); // Prevent default link behavior
-      toast.error("You need to sign in to access echoes."); // Show the error toast
+      event.preventDefault();
+      toast.error("You need to sign in to access echoes.");
+      return;
+    }
+
+    if (currentEchoes >= allowedEchoes) {
+      event.preventDefault();
+      toast.error(
+        "You have reached the maximum number of echoes allowed for your plan."
+      );
     }
   };
 
-  // Define refs and inView states
+ 
   const ref1 = useRef(null);
   const ref2 = useRef(null);
   const ref3 = useRef(null);
@@ -67,25 +129,108 @@ export default function Home() {
   const isInView5 = useInView(ref5, { once: false });
   console.log(process.env.GOOGLE_CLIENT_ID);
   const triggerAnimation = () => {
-    // Remove and re-add the "go" class to reset the animation
+  
     if (introRef.current) {
       introRef.current.classList.remove("go");
-      void introRef.current.offsetWidth; // Trigger reflow to restart animation
+      void introRef.current.offsetWidth; 
       introRef.current.classList.add("go");
     }
   };
 
   useEffect(() => {
-    // Trigger the animation on the initial load
+   
     triggerAnimation();
   }, []);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (plan) => {
+    if (!user) {
+      alert("You need to be logged in to make a payment.");
+      return;
+    }
+
+    const userId = user.id;
+    const amount = plan === "pro" ? 1000 : 3400; 
+    const currency = "INR";
+
+    
+    const res = await fetch("/api/payment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount, currency }),
+    });
+
+    const data = await res.json();
+
+    if (!data.id) {
+      alert("Failed to create payment. Please try again.");
+      return;
+    }
+
+    const isScriptLoaded = await loadRazorpayScript();
+
+    if (!isScriptLoaded) {
+      alert("Failed to load Razorpay SDK. Please try again.");
+      return;
+    }
+
+ 
+    const options = {
+      key: process.env.RZP_KEY,
+      amount: data.amount,
+      currency: data.currency,
+      name: "EchoTrust",
+      description: "Payment for subscription",
+      order_id: data.id, 
+      handler: async function (response) {
+      
+        const updateRes = await fetch(`/api/subscription/${user.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId, plan }),
+        });
+
+        const updateData = await updateRes.json();
+        if (updateRes.ok) {
+          alert("Payment successful! Subscription updated.");
+          console.log("Subscription Details:", updateData);
+        } else {
+          alert("Payment successful, but failed to update subscription.");
+        }
+      },
+      prefill: {
+        name: user.fullName || "Your Name",
+        email: user.primaryEmailAddress || "user@example.com",
+        contact: user.phoneNumber || "1234567890",
+      },
+      theme: {
+        color: "#800080",
+      },
+    };
+
+    const paymentObject = new window.Razorpay(options);
+    paymentObject.open();
+  };
 
   return (
     <>
       <main className="bg-moving-gradient bg-[length:200%_200%] animate-gradient-move h-screen w-full flex flex-col ">
         <div className="flex items-center h-20 px-28 justify-between">
           <div className="flex gap-10 font-roboto font-medium ">
-            {/* Left Side: Pricing and Features */}
+    
             <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
               <button
                 onClick={() =>
@@ -115,7 +260,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Center Title */}
+       
           <div
             className="flex text-center text-5xl font-protest tracking-tight text-white"
             style={{
@@ -126,7 +271,7 @@ export default function Home() {
             E c h o T r u s t
           </div>
 
-          {/* Right Side: Sign In / Sign Up */}
+    
           <div className="flex gap-4">
             <SignedIn>
               <div className="flex items-center gap-2">
@@ -181,22 +326,25 @@ export default function Home() {
             <div className="flex gap-4">
               <Link
                 href="/echo"
-                className="bg-black text-white py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek"
-                onClick={(e) => handleLinkClick(e, "/echo")} // Add onClick handler for "Create Echoes"
+                className={`bg-black text-white py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek ${
+                  currentEchoes >= allowedEchoes
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                onClick={(e) => handleLinkClick(e, "/echo")}
               >
                 Create Echoes
               </Link>
               <Link
                 href="/echolist"
                 className="bg-white text-black py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek"
-                onClick={(e) => handleLinkClick(e, "/echolist")} // Add onClick handler for "My Echoes"
+                onClick={(e) => handleLinkClick(e, "/echolist")}
               >
                 My Echoes
               </Link>
             </div>
           </div>
 
-          {/* <div className="right w-1/2"></div> */}
         </div>
       </main>
       <div
@@ -213,7 +361,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Gather feedback quick and easy.
           </div>
-          {/* Image Container */}
+       
           <div className="w-4/6 flex justify-center">
             <img
               src="rev.png"
@@ -233,7 +381,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Assemble reviews from across the web.
           </div>
-          {/* Image Container */}
+      
           <div className="w-4/6 flex justify-center items-center border-2 border-white">
             <img
               src="embd.png"
@@ -253,7 +401,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Stunning reviewpage with all the necessary details
           </div>
-          {/* Image Container */}
+       
           <div className="w-4/6 flex items-center justify-center">
             <img
               src="echo.png"
@@ -273,7 +421,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Embed the wall of trust.
           </div>
-          {/* Image Container */}
+      
           <div className="w-4/6">
             <img
               src="wall3.png"
@@ -293,7 +441,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Dedicated feedback page and Dashboard.
           </div>
-          {/* Image Container */}
+     
           <div className="w-4/6 flex justify-center items-center border-2 border-white">
             <img
               src="dash.png"
@@ -317,7 +465,7 @@ export default function Home() {
               height="150"
               viewBox="0 0 24 24"
               fill="red"
-              className="ml-2 inline-block" // Adds left margin and inline display
+              className="ml-2 inline-block" 
             >
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
@@ -406,11 +554,17 @@ export default function Home() {
 
       <div className="bg-black h-[calc(100vh-20px)] flex p-10">
         <div className="w-4/6 flex h-full w-full gap-10 items-center">
-          {/* Free Plan */}
-          <div className="w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg">
+         
+          <div
+            className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg ${
+              userPlan === "pro" || userPlan === "premium"
+                ? "opacity-50 pointer-events-none"
+                : ""
+            }`}
+          >
             <h3 className="text-2xl font-bold mb-4">Free Plan</h3>
             <p className="text-3xl font-extrabold mb-4">
-              $0<span className="text-base font-normal">/month</span>
+              ₹0<span className="text-base font-normal">/month</span>
             </p>
             <ul className="text-left mb-6">
               <li className="mb-2">✔️ Basic Testimonials</li>
@@ -420,20 +574,32 @@ export default function Home() {
               <li className="text-gray-400">❌ Priority Support</li>
               <li className="text-gray-400">❌ Analytics</li>
             </ul>
-            <button className="bg-purple-600 text-white px-4 py-2 rounded-lg">
-              Sign Up for Free
+            <button
+              className={`bg-purple-600 text-white px-4 py-2 rounded-lg ${
+                userPlan === "free" ? "pointer-events-none opacity-50" : ""
+              }`}
+              onClick={() => handlePayment("free")}
+            >
+              {userPlan === "free" ? "Enrolled" : "Sign Up for Free"}
             </button>
           </div>
 
-          {/* Monthly Subscription */}
-          <div className="w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg border-4 border-purple-600 relative">
-            {/* Popular Tag */}
-            <div className="absolute top-0 right-0 transform -translate-y-3 translate-x-3 bg-purple-600 text-white text-xs font-bold py-2 px-6 rounded-full shadow-md">
-              Popular
-            </div>
+     
+          <div
+            className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg border-4 relative ${
+              userPlan === "premium"
+                ? "opacity-50 pointer-events-none"
+                : "border-purple-600"
+            }`}
+          >
+            {userPlan === "premium" && (
+              <div className="absolute top-0 right-0 transform -translate-y-3 translate-x-3 bg-purple-600 text-white text-xs font-bold py-2 px-6 rounded-full shadow-md">
+                Popular
+              </div>
+            )}
             <h3 className="text-2xl font-bold mb-4">Pro Plan</h3>
             <p className="text-3xl font-extrabold mb-4">
-              $12<span className="text-base font-normal">/month</span>
+              ₹1000<span className="text-base font-normal">/month</span>
             </p>
             <ul className="text-left mb-6">
               <li className="mb-2">✔️ Everything in Free Plan</li>
@@ -443,16 +609,25 @@ export default function Home() {
               <li className="text-gray-400">❌ Team Collaboration</li>
               <li className="text-gray-400">❌ Dedicated Support</li>
             </ul>
-            <button className="bg-purple-600 text-white px-4 py-2 rounded-lg">
-              Start Free Trial
+            <button
+              className={`bg-purple-600 text-white px-4 py-2 rounded-lg ${
+                userPlan === "pro" ? "pointer-events-none opacity-50" : ""
+              }`}
+              onClick={() => handlePayment("pro")}
+            >
+              {userPlan === "pro" ? "Enrolled" : "Get Pro"}
             </button>
           </div>
 
-          {/* Yearly Subscription */}
-          <div className="w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg">
+        
+          <div
+            className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg ${
+              userPlan === "premium" ? "" : ""
+            }`}
+          >
             <h3 className="text-2xl font-bold mb-4">Premium Plan</h3>
             <p className="text-3xl font-extrabold mb-4">
-              $40<span className="text-base font-normal">/year</span>
+              ₹3400<span className="text-base font-normal">/year</span>
             </p>
             <ul className="text-left mb-6">
               <li className="mb-2">✔️ Everything in Pro Plan</li>
@@ -462,8 +637,13 @@ export default function Home() {
               <li className="mb-2">✔️ Advanced Analytics</li>
               <li className="mb-2">✔️ Premium Customization</li>
             </ul>
-            <button className="bg-purple-600 text-white px-4 py-2 rounded-lg">
-              Get Premium
+            <button
+              className={`bg-purple-600 text-white px-4 py-2 rounded-lg ${
+                userPlan === "premium" ? "pointer-events-none opacity-50" : ""
+              }`}
+              onClick={() => handlePayment("premium")}
+            >
+              {userPlan === "premium" ? "Enrolled" : "Get Premium"}
             </button>
           </div>
         </div>

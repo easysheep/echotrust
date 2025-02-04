@@ -1,24 +1,20 @@
 import connectToMongo from "../../../../../dbs/mongodb";
 import Echo from "@/../models/echoCreate";
-import Review from "@/../models/reviewCreate";  // Assuming this is your review model
+import Review from "@/../models/reviewCreate"; // Assuming this is your review model
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+import logger from "../../../../utils/logger";
 
 export async function GET(request, { params }) {
   try {
-    await connectToMongo();  // Ensure DB connection is established
+    await connectToMongo(); // Ensure DB connection is established
 
     const { echo_id } = params;
 
     if (!mongoose.Types.ObjectId.isValid(echo_id)) {
-      return NextResponse.json(
-        { message: "Invalid Echo ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid Echo ID" }, { status: 400 });
     }
 
-
-    
     // Fetch the Echo document
     const echo = await Echo.findById(echo_id);
 
@@ -31,12 +27,15 @@ export async function GET(request, { params }) {
 
     // Fetch the details of the reviews using their IDs
     const reviews = await Review.find({
-      _id: { $in: reviewIds }
+      _id: { $in: reviewIds },
     });
+    logger.info(
+      `Successfully fetched ${reviews.length} reviews for Echo ID: ${echo_id}`
+    );
 
     return NextResponse.json({ message: "Reviews found", reviews });
   } catch (error) {
-    console.error("Error fetching reviews:", error);
+    logger.error("Error fetching reviews", { error: error.message });
     return NextResponse.json(
       { message: "Failed to fetch reviews", error },
       { status: 500 }

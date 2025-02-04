@@ -6,9 +6,9 @@ import { FaYoutube, FaInstagram } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { CiSquarePlus, CiTrash } from "react-icons/ci";
 import toast, { Toaster } from "react-hot-toast";
-// Main Component
+
 const SocialMediaIntegration = ({ echo_id }) => {
-  // const { echo_id } = useParams();
+
   const [activeTab, setActiveTab] = useState("twitter");
   const [embedData, setEmbedData] = useState({
     tweetIds: [],
@@ -49,7 +49,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ embedId, embedType }), // Send the embed ID and type in the body
+          body: JSON.stringify({ embedId, embedType }), 
         });
 
         const result = await response.json();
@@ -58,13 +58,12 @@ const SocialMediaIntegration = ({ echo_id }) => {
           throw new Error(result.message || "Failed to delete embed");
         }
 
-        // Update state to remove deleted embed
         setEmbedData((prevData) => ({
           ...prevData,
           [embedType]: prevData[embedType].filter((id) => id !== embedId),
         }));
 
-        return result; // Return result for success message
+        return result;
       })(),
       {
         loading: "Deleting embed...",
@@ -81,7 +80,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
       setEmbedData((prev) => ({ ...prev, tweetIds: updatedTweetIds }));
       setTweetId("");
 
-      // Send POST request to save the Tweet IDs
+
       try {
         await fetch(`/api/embeds/${echo_id}`, {
           method: "POST",
@@ -105,7 +104,6 @@ const SocialMediaIntegration = ({ echo_id }) => {
       setEmbedData((prev) => ({ ...prev, youtubeUrls: updatedYoutubeUrls }));
       setVideoUrl("");
 
-      // Send POST request to save the YouTube embed URLs
       try {
         await fetch(`/api/embeds/${echo_id}`, {
           method: "POST",
@@ -129,7 +127,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
       setEmbedData((prev) => ({ ...prev, instagramUrls: updatedPostUrls }));
       setPostUrl("");
 
-      // Send POST request to save the Instagram post URLs
+  
       try {
         await fetch(`/api/embeds/${echo_id}`, {
           method: "POST",
@@ -161,7 +159,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
 
   const handleYoutubeEmbeding = async (e, videoUrl) => {
     e.preventDefault();
-    const videoId = extractVideoID(videoUrl); // Ensure this function is defined elsewhere
+    const videoId = extractVideoID(videoUrl); 
     if (videoId) {
       toast.promise(
         (async () => {
@@ -174,8 +172,8 @@ const SocialMediaIntegration = ({ echo_id }) => {
           });
 
           const responseData = await response.json();
-          console.log("Response Status:", response.status); // Check status code
-          console.log("Response Data:", responseData); // Log the full response data
+          console.log("Response Status:", response.status);
+          console.log("Response Data:", responseData); 
 
           if (!response.ok) {
             throw new Error(
@@ -183,7 +181,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
             );
           }
 
-          return responseData; // Return responseData for success message
+          return responseData; 
         })(),
         {
           loading: "Embedding YouTube video...",
@@ -210,8 +208,8 @@ const SocialMediaIntegration = ({ echo_id }) => {
           });
 
           const responseData = await response.json();
-          console.log("Response Status:", response.status); // Check status code
-          console.log("Response Data:", responseData); // Log the full response data
+          console.log("Response Status:", response.status); 
+          console.log("Response Data:", responseData); 
 
           if (!response.ok) {
             throw new Error(
@@ -219,7 +217,7 @@ const SocialMediaIntegration = ({ echo_id }) => {
             );
           }
 
-          return responseData; // Return responseData for success message
+          return responseData;
         })(),
         {
           loading: "Embedding Instagram post...",
@@ -246,8 +244,8 @@ const SocialMediaIntegration = ({ echo_id }) => {
           });
 
           const responseData = await response.json();
-          console.log("Response Status:", response.status); // Check status code
-          console.log("Response Data:", responseData); // Log the full response data
+          console.log("Response Status:", response.status); 
+          console.log("Response Data:", responseData); 
 
           if (!response.ok) {
             throw new Error(responseData.message || "Failed to embed tweet");
