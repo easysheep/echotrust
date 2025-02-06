@@ -66,9 +66,7 @@ export default function Home() {
         setAllowedEchoes(data?.echoLimit || 10);
         setUserPlan(data?.plan || "free"); 
 
-        console.log(
-          "Plan and limit are " + data?.plan + " and " + data?.echoLimit
-        );
+        // console.log("Plan and limit are " + data?.plan + " and " + data?.echoLimit);
       } catch (error) {
         console.error("Error fetching user plan:", error);
         setUserPlan("free"); 
