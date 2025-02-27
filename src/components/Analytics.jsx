@@ -1,12 +1,4 @@
-// import {
-//   LineChart,
-//   Line,
-//   XAxis,
-//   YAxis,
-//   CartesianGrid,
-//   Tooltip,
-//   Legend,
-// } from "recharts";
+
 import {
   Radar,
   RadarChart,
@@ -30,14 +22,7 @@ const Analytics = ({ reviews }) => {
 
   return (
     <div>
-      {/* <LineChart width={600} height={300} data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="stars" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="count" stroke="#8884d8" activeDot={{ r: 8 }} />
-      </LineChart> */}
+
       <RadarChart outerRadius={150} width={600} height={400} data={chartData} >
         <PolarGrid />
         <PolarAngleAxis dataKey="stars" stroke="white" />

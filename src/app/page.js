@@ -41,7 +41,6 @@ export default function Home() {
   };
 
   const { isSignedIn, user } = useUser(); 
-
   const [userPlan, setUserPlan] = useState("free"); 
   const [allowedEchoes, setAllowedEchoes] = useState(10); 
   const [currentEchoes, setCurrentEchoes] = useState(0);
@@ -115,6 +114,7 @@ export default function Home() {
   const ref3 = useRef(null);
   const ref4 = useRef(null);
   const ref5 = useRef(null);
+
   const pricingRef = useRef(null);
   const featuresRef = useRef(null);
   const customerRef = useRef(null);
@@ -125,7 +125,14 @@ export default function Home() {
   const isInView3 = useInView(ref3, { once: false });
   const isInView4 = useInView(ref4, { once: false });
   const isInView5 = useInView(ref5, { once: false });
-  console.log(process.env.GOOGLE_CLIENT_ID);
+  console.log('google client id is '+process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+
+  console.log('clerk key is '+process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+  console.log('clerk secret is '+process.env.CLERK_SECRET_KEY);
+
+  
+
   const triggerAnimation = () => {
   
     if (introRef.current) {

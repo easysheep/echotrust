@@ -58,7 +58,7 @@ const ReviewPage = ({ params }) => {
     setRandomGif(gifUrls[randomIndex]);
   }, []);
 
-  const MODEL_NAME = "gemini-1.0-pro";
+  const MODEL_NAME = "gemini-2.0-flash";
   const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
   // Hard-coded prompt
