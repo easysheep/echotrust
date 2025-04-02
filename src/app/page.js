@@ -11,8 +11,8 @@ import {
 } from "@clerk/nextjs";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css"; 
-import "swiper/css/navigation"; 
+import "swiper/css";
+import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import "swiper/css/effect-fade";
@@ -25,7 +25,7 @@ import {
   EffectCoverflow,
   EffectFade,
   EffectFlip,
-} from "swiper/modules"; 
+} from "swiper/modules";
 import { ReactTyped } from "react-typed";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
@@ -40,21 +40,48 @@ export default function Home() {
     },
   };
 
-  const { isSignedIn, user } = useUser(); 
-  const [userPlan, setUserPlan] = useState("free"); 
-  const [allowedEchoes, setAllowedEchoes] = useState(10); 
+  const textVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 1, ease: "easeOut" },
+    },
+  };
+  // Button Container: Staggered animation (starts after H1 animation)
+  const buttonContainerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        delayChildren: 1, // Delay buttons until H1 is done
+        staggerChildren: 0.2, // Stagger the button animations
+      },
+    },
+  };
+
+  // Individual Button Animation: Fade in with slight upward motion
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+
+  const { isSignedIn, user } = useUser();
+  const [userPlan, setUserPlan] = useState("free");
+  const [allowedEchoes, setAllowedEchoes] = useState(10);
   const [currentEchoes, setCurrentEchoes] = useState(0);
 
   useEffect(() => {
-
     const fetchUserPlan = async () => {
-      if (!user?.id) return; 
+      if (!user?.id) return;
       console.log("Fetching plan for user ID:", user.id);
 
       try {
-    
         const response = await fetch(`/api/subscription/${user.id}`, {
-          method: "GET", 
+          method: "GET",
         });
 
         if (!response.ok) {
@@ -63,12 +90,12 @@ export default function Home() {
 
         const data = await response.json();
         setAllowedEchoes(data?.echoLimit || 10);
-        setUserPlan(data?.plan || "free"); 
+        setUserPlan(data?.plan || "free");
 
         // console.log("Plan and limit are " + data?.plan + " and " + data?.echoLimit);
       } catch (error) {
         console.error("Error fetching user plan:", error);
-        setUserPlan("free"); 
+        setUserPlan("free");
       }
     };
 
@@ -80,8 +107,8 @@ export default function Home() {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json(); 
-        setCurrentEchoes(data.length); 
+        const data = await response.json();
+        setCurrentEchoes(data.length);
         console.log("Response data is:", data);
       } catch (error) {
         console.error("Error fetching echoes:", error);
@@ -91,7 +118,7 @@ export default function Home() {
     fetchEchoes();
 
     fetchUserPlan();
-  }, [user]); 
+  }, [user]);
 
   const handleLinkClick = (event, redirectPath) => {
     if (!isSignedIn) {
@@ -108,7 +135,6 @@ export default function Home() {
     }
   };
 
- 
   const ref1 = useRef(null);
   const ref2 = useRef(null);
   const ref3 = useRef(null);
@@ -125,25 +151,23 @@ export default function Home() {
   const isInView3 = useInView(ref3, { once: false });
   const isInView4 = useInView(ref4, { once: false });
   const isInView5 = useInView(ref5, { once: false });
-  console.log('google client id is '+process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  console.log(
+    "google client id is " + process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  );
 
-  console.log('clerk key is '+process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  console.log("clerk key is " + process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
-  console.log('clerk secret is '+process.env.CLERK_SECRET_KEY);
-
-  
+  console.log("clerk secret is " + process.env.CLERK_SECRET_KEY);
 
   const triggerAnimation = () => {
-  
     if (introRef.current) {
       introRef.current.classList.remove("go");
-      void introRef.current.offsetWidth; 
+      void introRef.current.offsetWidth;
       introRef.current.classList.add("go");
     }
   };
 
   useEffect(() => {
-   
     triggerAnimation();
   }, []);
 
@@ -164,10 +188,9 @@ export default function Home() {
     }
 
     const userId = user.id;
-    const amount = plan === "pro" ? 1000 : 3400; 
+    const amount = plan === "pro" ? 1000 : 3400;
     const currency = "INR";
 
-    
     const res = await fetch("/api/payment", {
       method: "POST",
       headers: {
@@ -190,16 +213,14 @@ export default function Home() {
       return;
     }
 
- 
     const options = {
       key: process.env.RZP_KEY,
       amount: data.amount,
       currency: data.currency,
       name: "EchoTrust",
       description: "Payment for subscription",
-      order_id: data.id, 
+      order_id: data.id,
       handler: async function (response) {
-      
         const updateRes = await fetch(`/api/subscription/${user.id}`, {
           method: "POST",
           headers: {
@@ -235,8 +256,7 @@ export default function Home() {
       <main className="bg-moving-gradient bg-[length:200%_200%] animate-gradient-move h-screen w-full flex flex-col ">
         <div className="flex items-center h-20 px-28 justify-between">
           <div className="flex gap-10 font-roboto font-medium ">
-    
-            <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+            <p className="text-white text-sm font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
               <button
                 onClick={() =>
                   pricingRef.current.scrollIntoView({ behavior: "smooth" })
@@ -245,7 +265,7 @@ export default function Home() {
                 Pricing
               </button>
             </p>
-            <p className="text-white text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+            <p className="text-white text-sm  font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
               <button
                 onClick={() =>
                   featuresRef.current.scrollIntoView({ behavior: "smooth" })
@@ -254,7 +274,7 @@ export default function Home() {
                 Features
               </button>
             </p>
-            <p className="text-white text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+            <p className="text-white text-sm font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
               <button
                 onClick={() =>
                   customerRef.current.scrollIntoView({ behavior: "smooth" })
@@ -265,7 +285,6 @@ export default function Home() {
             </p>
           </div>
 
-       
           <div
             className="flex text-center text-5xl font-protest tracking-tight text-white"
             style={{
@@ -276,19 +295,18 @@ export default function Home() {
             E c h o T r u s t
           </div>
 
-    
           <div className="flex gap-4">
             <SignedIn>
               <div className="flex items-center gap-2">
                 <UserButton afterSignOutUrl="/" />
-                <p className="text-white text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default"></p>
+                <p className="text-white font-greek text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default"></p>
               </div>
             </SignedIn>
 
             <SignedOut>
               <div className="flex items-center gap-10">
-                <SignInButton className="text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer text-white" />
-                <SignUpButton className="text-sm  border-b-2 border-transparent hover:border-white transition-all cursor-pointer text-white" />
+                <SignInButton className="text-sm  border-b-2 font-greek border-transparent hover:border-white transition-all cursor-pointer text-white" />
+                <SignUpButton className="text-sm  border-b-2 font-greek border-transparent hover:border-white transition-all cursor-pointer text-white" />
               </div>
             </SignedOut>
           </div>
@@ -301,55 +319,101 @@ export default function Home() {
           <div className="left w-full">
             <div className="text-extrabold text-5xl decoration-8 decoration-solid mb-5 text-white">
               <div className=" font-monte typewriter text-2xl ">
-                <ReactTyped
-                  strings={[
-                    "Tired of dealing with scattered, disorganized product reviews?",
-                    "We’ve got you covered.",
-                  ]}
-                  typeSpeed={50} // Speed at which text is typed
-                  backSpeed={0} // Speed at which text is deleted
-                  backDelay={1000} // Delay before starting to delete text
-                  startDelay={500} // Delay before starting to type
-                  loop={true} // Whether the typing animation should repeat
-                  showCursor={true} // Show a blinking cursor
-                />
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={textVariants}
+                  className="font-monte typewriter text-2xl text-white mb-5"
+                >
+                  <ReactTyped
+                    strings={[
+                      "Tired of dealing with scattered, disorganized product reviews?",
+                      "We’ve got you covered.",
+                    ]}
+                    typeSpeed={50}
+                    backSpeed={0}
+                    backDelay={1000}
+                    startDelay={500}
+                    loop={true}
+                    showCursor={true}
+                  />
+                </motion.div>
               </div>
 
-              <div className="text-4xl font-poppins font-600 hollow-text">
-                Curate and showcase feedback and testimonials
-              </div>
-              <div className="text-lg font-monte">
-                Whether it's for your event, product, or service, gather
-                feedback from across the web
-              </div>
-              <div className="text-lg font-monte">
-                and showcase it on our platform to elevate your business and
-                boost credibility.
-              </div>
+              <motion.h1
+                initial="hidden"
+                animate="visible"
+                variants={textVariants}
+                className="text-white text-6xl font-monte font-extrabold  mb-8"
+              >
+                Curate and showcase
+                <br />
+                feedback and testimonials
+                <br />
+                that elevate your brand,
+              </motion.h1>
+
+             
             </div>
 
-            <div className="flex gap-4">
-              <Link
-                href="/echo"
-                className={`bg-black text-white py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek ${
-                  currentEchoes >= allowedEchoes
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                onClick={(e) => handleLinkClick(e, "/echo")}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  transition: { delay: 0.6, duration: 0.5 },
+                },
+              }}
+              className="flex gap-4"
+            >
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: 0.8, duration: 0.4 },
+                  },
+                }}
               >
-                Create Echoes
-              </Link>
-              <Link
-                href="/echolist"
-                className="bg-white text-black py-2 px-4 rounded-lg transition-all duration-500 ease-in-out hover:shadow-glow font-greek"
-                onClick={(e) => handleLinkClick(e, "/echolist")}
+                <Link
+                  href="/echo"
+                  className={`bg-black text-white py-2 px-4 rounded-lg font-greek transition-all duration-500 ease-in-out 
+                  hover:scale-110 hover:shadow-[0px_0px_15px_rgba(255,255,255,0.6)] ${
+                    currentEchoes >= allowedEchoes
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  onClick={(e) => handleLinkClick(e, "/echo")}
+                >
+                  Create Echoes
+                </Link>
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: 1, duration: 0.4 },
+                  },
+                }}
               >
-                My Echoes
-              </Link>
-            </div>
+                <Link
+                  href="/echolist"
+                  className="bg-white text-black py-2 px-4 rounded-lg font-greek transition-all duration-500 ease-in-out 
+                 hover:scale-110 hover:shadow-[0px_0px_15px_rgba(0,0,0,0.6)]"
+                  onClick={(e) => handleLinkClick(e, "/echolist")}
+                >
+                  My Echoes
+                </Link>
+              </motion.div>
+            </motion.div>
           </div>
-
         </div>
       </main>
       <div
@@ -366,7 +430,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Gather feedback quick and easy.
           </div>
-       
+
           <div className="w-4/6 flex justify-center">
             <img
               src="rev.png"
@@ -386,7 +450,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Assemble reviews from across the web.
           </div>
-      
+
           <div className="w-4/6 flex justify-center items-center border-2 border-white">
             <img
               src="embd.png"
@@ -406,7 +470,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Stunning reviewpage with all the necessary details
           </div>
-       
+
           <div className="w-4/6 flex items-center justify-center">
             <img
               src="echo.png"
@@ -426,7 +490,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Embed the wall of trust.
           </div>
-      
+
           <div className="w-4/6">
             <img
               src="wall3.png"
@@ -446,7 +510,7 @@ export default function Home() {
           <div className="w-2/6 flex justify-center bg-[#0A0A0A] h-96 text-7xl font-extrabold p-4 break-words font-monte rounded-lg">
             Dedicated feedback page and Dashboard.
           </div>
-     
+
           <div className="w-4/6 flex justify-center items-center border-2 border-white">
             <img
               src="dash.png"
@@ -470,7 +534,7 @@ export default function Home() {
               height="150"
               viewBox="0 0 24 24"
               fill="red"
-              className="ml-2 inline-block" 
+              className="ml-2 inline-block"
             >
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
@@ -559,7 +623,6 @@ export default function Home() {
 
       <div className="bg-black h-[calc(100vh-20px)] flex p-10">
         <div className="w-4/6 flex h-full w-full gap-10 items-center">
-         
           <div
             className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg ${
               userPlan === "pro" || userPlan === "premium"
@@ -589,7 +652,6 @@ export default function Home() {
             </button>
           </div>
 
-     
           <div
             className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg border-4 relative ${
               userPlan === "premium"
@@ -624,7 +686,6 @@ export default function Home() {
             </button>
           </div>
 
-        
           <div
             className={`w-1/3 bg-gray-100 rounded-lg h-5/6 p-6 flex flex-col items-center shadow-lg ${
               userPlan === "premium" ? "" : ""
@@ -670,3 +731,176 @@ export default function Home() {
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+// <main className="bg-moving-gradient bg-[length:200%_200%] animate-gradient-move h-screen w-full flex flex-col ">
+//         <div className="flex items-center h-20 px-28 justify-between">
+//           <div className="flex gap-10 font-roboto font-medium ">
+//             <p className="text-white text-sm font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+//               <button
+//                 onClick={() =>
+//                   pricingRef.current.scrollIntoView({ behavior: "smooth" })
+//                 }
+//               >
+//                 Pricing
+//               </button>
+//             </p>
+//             <p className="text-white text-sm  font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+//               <button
+//                 onClick={() =>
+//                   featuresRef.current.scrollIntoView({ behavior: "smooth" })
+//                 }
+//               >
+//                 Features
+//               </button>
+//             </p>
+//             <p className="text-white text-sm font-greek border-b-2 border-transparent hover:border-white transition-all cursor-pointer">
+//               <button
+//                 onClick={() =>
+//                   customerRef.current.scrollIntoView({ behavior: "smooth" })
+//                 }
+//               >
+//                 Customers
+//               </button>
+//             </p>
+//           </div>
+
+//           <div
+//             className="flex text-center text-5xl font-protest tracking-tight text-white"
+//             style={{
+//               textShadow:
+//                 "0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4)",
+//             }}
+//           >
+//             E c h o T r u s t
+//           </div>
+
+//           <div className="flex gap-4">
+//             <SignedIn>
+//               <div className="flex items-center gap-2">
+//                 <UserButton afterSignOutUrl="/" />
+//                 <p className="text-white font-greek text-sm border-b-2 border-transparent hover:border-white transition-all cursor-default"></p>
+//               </div>
+//             </SignedIn>
+
+//             <SignedOut>
+//               <div className="flex items-center gap-10">
+//                 <SignInButton className="text-sm  border-b-2 font-greek border-transparent hover:border-white transition-all cursor-pointer text-white" />
+//                 <SignUpButton className="text-sm  border-b-2 font-greek border-transparent hover:border-white transition-all cursor-pointer text-white" />
+//               </div>
+//             </SignedOut>
+//           </div>
+//         </div>
+
+//         <div
+//           className="flex-grow flex items-center w-full justify-center gap-3 px-10 "
+//           style={{ height: "calc(100vh - 96px " }}
+//         >
+//           <div className="left w-full">
+//             <div className="text-extrabold text-5xl decoration-8 decoration-solid mb-5 text-white">
+//               <div className=" font-monte typewriter text-2xl ">
+//                 <motion.div
+//                   initial="hidden"
+//                   animate="visible"
+//                   variants={textVariants}
+//                   className="font-monte typewriter text-2xl text-white mb-5"
+//                 >
+//                   <ReactTyped
+//                     strings={[
+//                       "Tired of dealing with scattered, disorganized product reviews?",
+//                       "We’ve got you covered.",
+//                     ]}
+//                     typeSpeed={50}
+//                     backSpeed={0}
+//                     backDelay={1000}
+//                     startDelay={500}
+//                     loop={true}
+//                     showCursor={true}
+//                   />
+//                 </motion.div>
+//               </div>
+
+//               <motion.h1
+//                 initial="hidden"
+//                 animate="visible"
+//                 variants={textVariants}
+//                 className="text-white text-6xl font-monte font-extrabold  mb-8"
+//               >
+//                 Curate and showcase
+//                 <br />
+//                 feedback and testimonials
+//                 <br />
+//                 that elevate your brand,
+//               </motion.h1>
+
+             
+//             </div>
+
+//             <motion.div
+//               initial="hidden"
+//               animate="visible"
+//               variants={{
+//                 hidden: { opacity: 0, scale: 0.8 },
+//                 visible: {
+//                   opacity: 1,
+//                   scale: 1,
+//                   transition: { delay: 0.6, duration: 0.5 },
+//                 },
+//               }}
+//               className="flex gap-4"
+//             >
+//               <motion.div
+//                 variants={{
+//                   hidden: { opacity: 0, y: 20 },
+//                   visible: {
+//                     opacity: 1,
+//                     y: 0,
+//                     transition: { delay: 0.8, duration: 0.4 },
+//                   },
+//                 }}
+//               >
+//                 <Link
+//                   href="/echo"
+//                   className={`bg-black text-white py-2 px-4 rounded-lg font-greek transition-all duration-500 ease-in-out 
+//                   hover:scale-110 hover:shadow-[0px_0px_15px_rgba(255,255,255,0.6)] ${
+//                     currentEchoes >= allowedEchoes
+//                       ? "opacity-50 cursor-not-allowed"
+//                       : ""
+//                   }`}
+//                   onClick={(e) => handleLinkClick(e, "/echo")}
+//                 >
+//                   Create Echoes
+//                 </Link>
+//               </motion.div>
+
+//               <motion.div
+//                 variants={{
+//                   hidden: { opacity: 0, y: 20 },
+//                   visible: {
+//                     opacity: 1,
+//                     y: 0,
+//                     transition: { delay: 1, duration: 0.4 },
+//                   },
+//                 }}
+//               >
+//                 <Link
+//                   href="/echolist"
+//                   className="bg-white text-black py-2 px-4 rounded-lg font-greek transition-all duration-500 ease-in-out 
+//                  hover:scale-110 hover:shadow-[0px_0px_15px_rgba(0,0,0,0.6)]"
+//                   onClick={(e) => handleLinkClick(e, "/echolist")}
+//                 >
+//                   My Echoes
+//                 </Link>
+//               </motion.div>
+//             </motion.div>
+//           </div>
+//         </div>
+//       </main>
