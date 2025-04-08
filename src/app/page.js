@@ -151,13 +151,6 @@ export default function Home() {
   const isInView3 = useInView(ref3, { once: false });
   const isInView4 = useInView(ref4, { once: false });
   const isInView5 = useInView(ref5, { once: false });
-  console.log(
-    "google client id is " + process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-  );
-
-  console.log("clerk key is " + process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
-  console.log("clerk secret is " + process.env.CLERK_SECRET_KEY);
 
   const triggerAnimation = () => {
     if (introRef.current) {
